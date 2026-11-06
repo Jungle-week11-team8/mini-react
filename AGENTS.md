@@ -55,6 +55,58 @@ docs/
 VNode와 patch 객체의 형태는 `docs/vnode-spec.md`가 기준이다.
 코드와 문서가 다르면 문서를 따르고, 형태를 바꿔야 한다면 문서를 먼저 고친 뒤 코드를 고친다.
 
+### 확정한 형태 요약
+
+VNode와 Patch는 둘 다 **종류별 타입을 `type` 필드로 구분하는 유니온 타입**으로 정의한다.
+아래 TypeScript 표기는 형태를 설명하기 위한 것이다. 코드는 `.js`로 작성하고, 타입은 JSDoc `@typedef`로 표현한다.
+
+```ts
+type VNode =
+  | {
+      type: 'element';
+      tag: string;
+      attrs: Record<string, string>;
+      key?: string; // 선택 필드. 리스트 재정렬(MOVE) 확장용
+      children: VNode[];
+    }
+  | { type: 'text'; text: string }
+  | { type: 'comment'; text: string };
+
+type Path = number[]; // 컨테이너에서 시작해 childNodes 인덱스를 따라가는 경로. 루트 요소는 [0]
+
+type Patch =
+  | { type: 'INSERT'; parentPath: Path; index: number; node: VNode }
+  | { type: 'REMOVE'; path: Path }
+  | { type: 'REPLACE'; path: Path; node: VNode }
+  | { type: 'SET_DATA'; path: Path; value: string } // text, comment 공용
+  | { type: 'UPDATE_ATTRS'; path: Path; set: Record<string, string>; remove: string[] };
+```
+
+이 형태를 고른 이유:
+
+- `type`으로 분기하면 종류마다 필요한 필드가 정해져 있어서, diff와 patch 코드의 분기가 단순하고 잘못된 객체를 만들기 어렵다.
+- 텍스트를 문자열이 아니라 `{ type: 'text' }` 노드로 둔다. 그러면 모든 child가 객체가 되어 `typeof` 분기가 필요 없다. DOM의 `nodeType`(1 Element, 3 Text, 8 Comment)과도 1:1로 대응한다.
+- comment 노드도 VNode로 표현한다. 주석을 버리면 VNode 인덱스와 실제 `childNodes` 인덱스가 어긋나서 path가 다른 노드를 가리키게 된다.
+- VNode는 DOM 참조가 없는 순수 데이터라서 State History에 스냅샷으로 저장하고 복원할 수 있다.
+- 추가는 `parentPath + index`로 표현한다. 새 노드는 아직 DOM에 없어서 path로는 찾을 수 없기 때문이다.
+- 속성 변경은 `set`과 `remove`로 나눈다. 그래야 속성 삭제도 표현할 수 있다.
+
+반드시 지킬 규칙:
+
+1. **VNode에는 함수를 넣지 않는다.** 함수는 `structuredClone`에서 에러가 나고 `JSON.stringify`에서는 사라져서 history 저장이 깨진다.
+   - 컴포넌트는 diff하기 전에 실행해서 태그 VNode로 펼친다. `tag`에 함수를 허용하지 않는다.
+   - Phase 2에서 이벤트 핸들러가 필요하면 `attrs`에 섞지 않고 별도 필드(예: `events?: Record<string, Function>`)로 둔다. 이 필드를 추가하기 전에 사람에게 먼저 묻는다.
+2. **공백만 있는 텍스트 노드를 버리는 경우**, `domToVNode`와 `applyPatches`의 path 해석이 같은 규칙을 써야 한다. 그렇지 않으면 인덱스가 어긋난다.
+3. **diff는 REMOVE·REPLACE·INSERT를 만든 노드의 하위 트리에 대해서는 patch를 더 만들지 않는다.**
+4. **`applyPatches` 적용 순서**: path 기반 patch는 앞쪽 형제를 지우면 뒤 형제의 인덱스가 밀린다. 그래서 아래 순서를 지킨다.
+   1. 모든 patch의 대상 노드(`path`, INSERT는 `parentPath`)를 **old DOM 기준으로 먼저 찾아 참조로 보관**한다.
+   2. REMOVE를 적용한다.
+   3. REPLACE, SET_DATA, UPDATE_ATTRS를 적용한다.
+   4. INSERT를 같은 부모 안에서 `index` 오름차순으로 적용한다. `index`는 **new children 기준** 위치이고, `parent.insertBefore(el, parent.childNodes[index] ?? null)`로 넣는다.
+5. 새 연산(예: `MOVE`)은 Patch 유니온에 타입을 추가하고, diff 생성 로직, 적용 로직, 테스트를 함께 구현한다.
+
+`patch` 단위 테스트에는 "앞쪽 삭제와 뒤쪽 추가가 동시에 일어나는 경우"(예: `[A, B, C]` → `[B, C, D]`)를 반드시 포함한다.
+
 ## 코드 스타일
 
 - Prettier와 ESLint 설정을 따른다. 설정 파일을 임의로 바꾸지 않는다.
