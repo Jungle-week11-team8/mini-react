@@ -4,7 +4,9 @@
  * @typedef {{ type: 'element', tag: string, attrs: Record<string, string>, key?: string, children: VNode[] }} ElementVNode
  * @typedef {{ type: 'text', text: string }} TextVNode
  * @typedef {{ type: 'comment', text: string }} CommentVNode
- * @typedef {ElementVNode | TextVNode | CommentVNode} VNode
+ * @typedef {{ type: 'document', children: VNode[] }} DocumentVNode
+ * @typedef {{ type: 'doctype', name: string, publicId: string, systemId: string }} DocumentTypeVNode
+ * @typedef {ElementVNode | TextVNode | CommentVNode | DocumentVNode | DocumentTypeVNode} VNode
  */
 
 /** @typedef {number[]} Path */
