@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mini-react Patch 데모</title>
+    <style>
+      :root {
+        font:
+          100%/1.6 system-ui,
+          sans-serif;
+        color: #182438;
+        background: #f3f6fb;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        max-width: 98rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      h1,
+      h2 {
+        margin: 0;
+      }
+      header p,
+      section > p {
+        margin: 0.35rem 0 0;
+        color: #48566c;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+      }
+      .areas {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-areas:
+          'actual test editor'
+          '. controls editor'
+          'log history editor';
+        gap: 0.75rem;
+      }
+      @media (max-width: 54rem) {
+        .areas {
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            'actual'
+            'test'
+            'controls'
+            'editor'
+            'log'
+            'history';
+        }
+        .editor-panel textarea {
+          min-height: 12rem;
+        }
+      }
+      .areas section {
+        min-width: 0;
+        padding: 1rem;
+        background: white;
+        border: 1px solid #d3ddeb;
+        border-radius: 0.75rem;
+      }
+      .actual-panel {
+        grid-area: actual;
+      }
+      .test-panel {
+        grid-area: test;
+      }
+      .log-panel {
+        grid-area: log;
+      }
+      .history-panel {
+        grid-area: history;
+      }
+      .editor-panel {
+        grid-area: editor;
+        display: flex;
+        flex-direction: column;
+      }
+      .editor-panel textarea {
+        flex: 1;
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.85rem;
+        resize: none;
+        color: inherit;
+        background: #f1f5fa;
+        border: 1px solid #8e9db1;
+        border-radius: 0.5rem;
+        font:
+          0.9rem/1.6 ui-monospace,
+          Consolas,
+          monospace;
+      }
+      .sample {
+        min-height: 10.4rem;
+        margin-top: 1rem;
+        padding: 0.85rem;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        background: #f1f5fa;
+        border-radius: 0.5rem;
+      }
+      .sample :is(p, h3, ul) {
+        margin: 0;
+      }
+      .sample ul {
+        padding-inline-start: 1.5rem;
+      }
+      .sample .emphasized {
+        color: #1848ad;
+        font-weight: 700;
+      }
+      .test-controls {
+        grid-area: controls;
+      }
+      .test-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.5rem;
+      }
+      .test-form label {
+        grid-column: 1 / -1;
+      }
+      .test-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      .test-form input,
+      button {
+        min-width: 0;
+        padding: 0.35rem 0.65rem;
+        color: inherit;
+        background: white;
+        border: 1px solid #8e9db1;
+        border-radius: 0.4rem;
+        font: inherit;
+      }
+      button:not(:disabled) {
+        cursor: pointer;
+      }
+      button:disabled {
+        color: #526178;
+        background: #e7edf5;
+      }
+      button[aria-pressed='true'] {
+        color: #1848ad;
+        background: #e5efff;
+        border-color: #1848ad;
+      }
+      #patch {
+        color: white;
+        background: #1848ad;
+        border-color: #1848ad;
+      }
+      .details {
+        max-height: 16rem;
+        margin: 0.75rem 0 0;
+        overflow: auto;
+        overflow-wrap: anywhere;
+      }
+      pre.details {
+        padding: 0.75rem;
+        white-space: pre-wrap;
+        background: #f1f5fa;
+        border-radius: 0.5rem;
+      }
+      #history-list ol {
+        margin: 0;
+        padding-inline-start: 1.5rem;
+      }
+      #history-list [aria-current='step'] {
+        color: #1848ad;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>mini-react Patch 데모</h1>
+        <p>테스트 영역에서 변경을 준비하고 Patch 버튼으로 실제 영역에 반영하세요.</p>
+      </header>
+
+      <div class="toolbar" role="group" aria-label="패치 및 상태 이력">
+        <button id="back" type="button" disabled>뒤로 가기</button>
+        <button id="forward" type="button" disabled>앞으로 가기</button>
+        <button id="patch" type="button">Patch</button>
+        <button id="reset-demo" type="button">초기화</button>
+        <output id="history-status">이력 1 / 1</output>
+      </div>
+
+      <div class="areas">
+        <section class="actual-panel" aria-labelledby="actual-label">
+          <h2 id="actual-label">실제 영역</h2>
+          <p>Patch와 이력 이동 결과를 표시합니다.</p>
+          <div id="actual" class="sample"></div>
+        </section>
+
+        <section class="test-panel" aria-labelledby="test-label">
+          <h2 id="test-label">테스트 영역</h2>
+          <p>아래 버튼이나 HTML 편집기로 내용을 바꿔 보세요.</p>
+          <div id="test-area" class="sample" role="status" aria-label="입력 결과"></div>
+        </section>
+
+        <div class="test-controls">
+          <form id="test-form" class="test-form">
+            <label for="test-input">입력할 텍스트</label>
+            <input id="test-input" type="text" />
+            <button type="submit">확인</button>
+          </form>
+          <div class="test-actions" role="group" aria-label="테스트 영역 조작">
+            <button id="add-item" type="button">항목 추가</button>
+            <button id="remove-item" type="button" disabled>마지막 항목 삭제</button>
+            <button id="toggle-emphasis" type="button" aria-pressed="false">강조</button>
+            <button id="toggle-tag" type="button" aria-pressed="false">제목 태그 사용 (h3)</button>
+          </div>
+        </div>
+
+        <section class="editor-panel" aria-labelledby="editor-label">
+          <h2 id="editor-label"><label for="html-source">HTML 편집기</label></h2>
+          <p id="editor-help">HTML을 수정하면 테스트 영역에 바로 표시됩니다.</p>
+          <textarea
+            id="html-source"
+            rows="2"
+            spellcheck="false"
+            autocapitalize="off"
+            aria-describedby="editor-help"
+          ></textarea>
+        </section>
+
+        <section class="log-panel" aria-labelledby="patch-log-label">
+          <h2 id="patch-log-label">마지막 패치 로그</h2>
+          <p>Patch 또는 이력 이동에서 계산한 연산을 표시합니다.</p>
+          <pre id="patch-log" class="details">아직 적용한 패치가 없습니다.</pre>
+        </section>
+
+        <section class="history-panel" aria-labelledby="history-list-label">
+          <h2 id="history-list-label">이력 목록</h2>
+          <p>실제 영역에 저장된 상태를 표시합니다.</p>
+          <div id="history-list" class="details"></div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module">
+      import { applyPatches, diff, domToVNode } from './src/index.js';
+      import { renderPreview } from './src/patch/index.js';
+
+      const actual = document.getElementById('actual');
+      const testArea = document.getElementById('test-area');
+      const testForm = document.getElementById('test-form');
+      const testInput = document.getElementById('test-input');
+      const removeItem = document.getElementById('remove-item');
+      const toggleEmphasis = document.getElementById('toggle-emphasis');
+      const toggleTag = document.getElementById('toggle-tag');
+      const back = document.getElementById('back');
+      const forward = document.getElementById('forward');
+      const historyStatus = document.getElementById('history-status');
+      const patchLog = document.getElementById('patch-log');
+      const historyList = document.getElementById('history-list');
+      const editor = document.getElementById('html-source');
+      const editorHelp = document.getElementById('editor-help');
+      const initialEditorHelp = editorHelp.textContent;
+      const initialPatchLog = patchLog.textContent;
+      const template = document.createElement('template');
+      const urlAttributes = new Set(['action', 'formaction', 'href', 'src']);
+
+      function element(tag, children = []) {
+        return { type: 'element', tag, attrs: {}, children };
+      }
+
+      const initial = element('article', [
+        element('p', [{ type: 'text', text: '입력한 텍스트가 여기에 표시됩니다.' }]),
+        element('ul'),
+      ]);
+      let draft = structuredClone(initial);
+
+      function findChild(node, ...tags) {
+        return node.children.find((child) => child.type === 'element' && tags.includes(child.tag));
+      }
+
+      function ensureDraftChild(tag, ...otherTags) {
+        const existing = findChild(draft, tag, ...otherTags);
+        if (existing) return existing;
+        const child = element(tag);
+        draft.children.push(child);
+        return child;
+      }
+
+      function listItems(list) {
+        return (
+          list?.children.filter((child) => child.type === 'element' && child.tag === 'li') ?? []
+        );
+      }
+
+      function classNames(node) {
+        return (node?.attrs.class ?? '').split(/\s+/).filter(Boolean);
+      }
+
+      function nodeText(node) {
+        if (node.type === 'text') return node.text;
+        if (node.type === 'element') return node.children.map(nodeText).join('');
+        return '';
+      }
+
+      function renderTestArea(nextDraft) {
+        renderPreview(testArea, nextDraft);
+        draft = nextDraft;
+        const message = findChild(draft, 'p', 'h3');
+        removeItem.disabled = listItems(findChild(draft, 'ul', 'ol')).length === 0;
+        toggleEmphasis.setAttribute(
+          'aria-pressed',
+          String(classNames(message).includes('emphasized')),
+        );
+        toggleTag.setAttribute('aria-pressed', String(message?.tag === 'h3'));
+      }
+
+      function renderAndSyncEditor() {
+        renderTestArea(draft);
+        editor.value = testArea.firstChild.innerHTML;
+        renderPreview(editorHelp, { type: 'text', text: initialEditorHelp });
+      }
+
+      function readEditorChildren() {
+        template.innerHTML = editor.value;
+        // 페이지 전체에 영향을 주는 요소는 미리보기 트리에 넣지 않는다.
+        template.content
+          .querySelectorAll('base, embed, iframe, link, meta, object, script, style, template')
+          .forEach((node) => node.remove());
+
+        for (const node of template.content.querySelectorAll('*')) {
+          if (node.namespaceURI !== 'http://www.w3.org/1999/xhtml') {
+            node.remove();
+            continue;
+          }
+          for (const { name, value } of Array.from(node.attributes)) {
+            const isScriptUrl =
+              urlAttributes.has(name) &&
+              URL.parse(value, document.baseURI)?.protocol === 'javascript:';
+            if (name.startsWith('on') || isScriptUrl) node.removeAttribute(name);
+          }
+        }
+        return Array.from(template.content.childNodes, domToVNode);
+      }
+
+      renderAndSyncEditor();
+      renderPreview(actual, initial);
+      const history = [initial];
+      let cursor = 0;
+
+      function renderHistory() {
+        const entries = history.map((snapshot, index) => {
+          const current = index === cursor;
+          const message = findChild(snapshot, 'p', 'h3');
+          const list = findChild(snapshot, 'ul', 'ol');
+          const text = nodeText(message ?? snapshot).trim() || '(빈 문구)';
+          const items = listItems(list).map(nodeText).join(', ');
+          const summary = [
+            current ? '현재' : '',
+            message?.tag,
+            classNames(message).includes('emphasized') ? '강조' : '',
+            text,
+            items || '항목 없음',
+          ];
+          return {
+            type: 'element',
+            tag: 'li',
+            attrs: current ? { 'aria-current': 'step' } : {},
+            children: [{ type: 'text', text: summary.filter(Boolean).join(' · ') }],
+          };
+        });
+        renderPreview(historyList, { type: 'element', tag: 'ol', attrs: {}, children: entries });
+      }
+
+      function applyAndLog(patches) {
+        if (patches.length > 0) applyPatches(actual, patches);
+        renderPreview(patchLog, { type: 'text', text: JSON.stringify(patches, null, 2) });
+      }
+
+      function updateHistoryControls(message) {
+        back.disabled = cursor === 0;
+        forward.disabled = cursor === history.length - 1;
+        historyStatus.value = `이력 ${cursor + 1} / ${history.length} · ${message}`;
+      }
+
+      function moveTo(index) {
+        applyAndLog(diff(history[cursor], history[index]));
+        cursor = index;
+        renderHistory();
+        updateHistoryControls('선택한 상태로 이동했어요.');
+      }
+
+      renderHistory();
+      editor.addEventListener('input', () => {
+        try {
+          renderTestArea({ ...draft, children: readEditorChildren() });
+          renderPreview(editorHelp, { type: 'text', text: initialEditorHelp });
+        } catch (error) {
+          renderPreview(editorHelp, { type: 'text', text: `미리보기 오류 · ${error.message}` });
+        }
+      });
+      testForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        ensureDraftChild('p', 'h3').children = [{ type: 'text', text: testInput.value }];
+        renderAndSyncEditor();
+      });
+      document.getElementById('add-item').addEventListener('click', () => {
+        const list = ensureDraftChild('ul', 'ol');
+        const text = `항목 ${listItems(list).length + 1}`;
+        list.children.push(element('li', [{ type: 'text', text }]));
+        renderAndSyncEditor();
+      });
+      removeItem.addEventListener('click', () => {
+        const list = findChild(draft, 'ul', 'ol');
+        const lastItem = listItems(list).at(-1);
+        if (!lastItem) return;
+        list.children.splice(list.children.indexOf(lastItem), 1);
+        renderAndSyncEditor();
+      });
+      toggleEmphasis.addEventListener('click', () => {
+        const message = ensureDraftChild('p', 'h3');
+        const names = new Set(classNames(message));
+        if (names.has('emphasized')) names.delete('emphasized');
+        else names.add('emphasized');
+
+        if (names.size > 0) message.attrs.class = [...names].join(' ');
+        else delete message.attrs.class;
+        renderAndSyncEditor();
+      });
+      toggleTag.addEventListener('click', () => {
+        const message = ensureDraftChild('p', 'h3');
+        message.tag = message.tag === 'p' ? 'h3' : 'p';
+        renderAndSyncEditor();
+      });
+      back.addEventListener('click', () => moveTo(cursor - 1));
+      forward.addEventListener('click', () => moveTo(cursor + 1));
+
+      document.getElementById('reset-demo').addEventListener('click', () => {
+        draft = structuredClone(initial);
+        testForm.reset();
+        renderAndSyncEditor();
+        renderPreview(actual, initial);
+        renderPreview(patchLog, { type: 'text', text: initialPatchLog });
+        history.length = 1;
+        cursor = 0;
+        renderHistory();
+        updateHistoryControls('초기 상태로 돌아갔어요.');
+      });
+
+      document.getElementById('patch').addEventListener('click', () => {
+        const next = domToVNode(testArea.firstChild);
+        const patches = diff(history[cursor], next);
+        applyAndLog(patches);
+        if (patches.length === 0) {
+          updateHistoryControls('반영할 변경이 없어요.');
+          return;
+        }
+
+        // 되돌린 상태에서 새 패치를 적용하면 그 지점부터 새 이력을 쌓는다.
+        history.splice(cursor + 1, history.length - cursor - 1, next);
+        cursor += 1;
+        renderHistory();
+        updateHistoryControls(`패치 ${patches.length}건을 적용했어요.`);
+      });
+    </script>
+  </body>
+</html>

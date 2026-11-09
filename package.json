@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "vite demo",
+    "dev": "vite",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
