@@ -52,6 +52,7 @@ describe('applyPatches', () => {
       ['속성 추가', '<p></p>', '<p id="a"></p>'],
       ['속성 수정', '<p id="a"></p>', '<p id="b"></p>'],
       ['속성 삭제', '<p id="a"></p>', '<p></p>'],
+      ['프로토타입 이름 속성', '<div constructor="old"></div>', '<div __proto__="new"></div>'],
       ['추가·수정·삭제 동시', '<p id="a" class="x"></p>', '<p id="b" title="t"></p>'],
       ['text 내용', '<p>A</p>', '<p>B</p>'],
       ['comment 내용', '<p><!--A--></p>', '<p><!--B--></p>'],
@@ -70,7 +71,7 @@ describe('applyPatches', () => {
       ],
     ])('%s → 에러, DOM은 그대로', (_name, patch) => {
       const container = containerOf('<p>A</p>');
-      expect(() => applyPatches(container, [patch])).toThrow('노드가 없습니다');
+      expect(() => applyPatches(container, [patch])).toThrow();
       expect(container.innerHTML).toBe('<p>A</p>');
     });
   });

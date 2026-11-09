@@ -69,11 +69,11 @@ function diffChildren(oldChildren, newChildren, parentPath, patches) {
  * @returns {{ set: Record<string, string>, remove: string[] }}
  */
 function diffAttrs(oldAttrs, newAttrs) {
-  /** @type {Record<string, string>} */
-  const set = {};
-  for (const [name, value] of Object.entries(newAttrs)) {
-    if (oldAttrs[name] !== value) set[name] = value;
-  }
-  const remove = Object.keys(oldAttrs).filter((name) => !(name in newAttrs));
+  // 프로토타입과 이름이 같은 속성도 실제 DOM 속성으로 추가·삭제해야 한다.
+  const changed = Object.entries(newAttrs).filter(
+    ([name, value]) => !Object.hasOwn(oldAttrs, name) || oldAttrs[name] !== value,
+  );
+  const set = Object.fromEntries(changed);
+  const remove = Object.keys(oldAttrs).filter((name) => !Object.hasOwn(newAttrs, name));
   return { set, remove };
 }
