@@ -5,48 +5,232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>mini-react Phase 1</title>
     <style>
-      body {
-        font-family: system-ui, sans-serif;
-        margin: 16px;
+      /* Mona12는 12px 격자 픽셀체라서 글자 크기를 12의 배수로만 쓴다. 그래야 픽셀이 번지지 않는다. */
+      @font-face {
+        font-family: 'Mona12';
+        src: url('./fonts/Mona12-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-display: swap;
       }
+      @font-face {
+        font-family: 'Mona12';
+        src: url('./fonts/Mona12-Bold.woff2') format('woff2');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      :root {
+        --paper: #f3efe6;
+        --card: #fbf9f4;
+        --ink: #2b2925;
+        --muted: #6e675c;
+        --rule: #a9a297;
+        --error: #b3261e;
+        --hatch: repeating-linear-gradient(
+          -45deg,
+          rgba(43, 41, 37, 0.18) 0 3px,
+          transparent 3px 8px
+        );
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px 48px 48px;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Mona12', monospace;
+        font-size: 24px;
+        -webkit-font-smoothing: none;
+      }
+
+      h1 {
+        margin: 0 auto 24px;
+        width: fit-content;
+        font-size: 48px;
+        font-weight: 700;
+        padding-bottom: 8px;
+        border-bottom: 4px solid var(--ink);
+      }
+
+      /* 섹션 제목: 제목 — 점선 — 체크무늬 */
+      .rule {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 24px 0 12px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .rule::after {
+        content: '';
+        flex: 1;
+        border-top: 2px dashed var(--rule);
+      }
+      .rule::before {
+        content: '';
+        order: 2;
+        width: 24px;
+        height: 24px;
+        background: repeating-conic-gradient(var(--rule) 0 25%, transparent 0 50%) 0 0 / 8px 8px;
+      }
+
       .areas {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 36px;
       }
+
+      .area-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0 0 12px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .area-head small {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+
+      /* 실제 영역: 떠 있는 판 (Raised) */
       .area {
-        border: 1px solid #999;
+        min-height: 288px;
+        padding: 24px 36px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        background: var(--card);
+        box-shadow: 6px 6px 0 var(--ink);
+        font-size: 36px;
+      }
+      .area ul {
+        margin: 0;
+        padding-left: 36px;
+        list-style: square;
+      }
+
+      /* 테스트 영역: 해칭 테두리 안으로 들어간 입력창 (Inset) */
+      .inset {
         padding: 8px;
-        min-height: 200px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        background: var(--hatch);
       }
       textarea {
+        display: block;
         width: 100%;
-        min-height: 200px;
-        box-sizing: border-box;
-        font-family: monospace;
+        min-height: 264px;
+        padding: 12px 18px;
+        border: 3px solid var(--ink);
+        border-radius: 2px;
+        background: var(--card);
+        box-shadow: inset 4px 4px 0 rgba(43, 41, 37, 0.18);
+        color: var(--ink);
+        font-family: 'Mona12', monospace;
+        font-size: 24px;
+        line-height: 36px;
+        resize: vertical;
+        outline: none;
       }
+      textarea:focus {
+        box-shadow:
+          inset 4px 4px 0 rgba(43, 41, 37, 0.18),
+          0 0 0 3px var(--paper),
+          0 0 0 6px var(--ink);
+      }
+
       .controls {
-        margin: 12px 0;
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
         align-items: center;
+        gap: 12px;
+      }
+
+      button {
+        min-height: 48px;
+        padding: 0 24px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        background: var(--card);
+        box-shadow: 4px 4px 0 var(--ink);
+        color: var(--ink);
+        font: inherit;
+        font-size: 24px;
+        cursor: pointer;
+      }
+      /* 누르는 동안은 그림자만큼 내려가서 눌린 판(Pressed)이 된다 */
+      button:active:not(:disabled) {
+        transform: translate(4px, 4px);
+        box-shadow: inset 3px 3px 0 rgba(43, 41, 37, 0.25);
+        background: var(--hatch), #ece6da;
+      }
+      button:focus-visible {
+        outline: 3px dashed var(--ink);
+        outline-offset: 4px;
+      }
+      button:disabled {
+        border-color: #b3ab9e;
+        background: var(--paper);
+        box-shadow: 3px 3px 0 #cfc8bb;
+        color: #8f887c;
+        cursor: not-allowed;
+      }
+      #patch {
+        font-weight: 700;
+        box-shadow: 5px 5px 0 var(--ink);
+      }
+
+      #status {
+        margin-left: 12px;
+        padding: 0 12px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 24px;
+        line-height: 36px;
       }
       #error {
-        color: #c00;
+        color: var(--error);
+        font-size: 24px;
       }
+
+      /* 마지막 patch: 알림 카드처럼 */
       pre {
-        background: #f4f4f4;
-        padding: 8px;
+        margin: 0;
+        padding: 12px 18px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        background: var(--card);
+        box-shadow: 4px 4px 0 var(--ink);
+        font-family: 'Mona12', monospace;
+        font-size: 24px;
+        line-height: 36px;
+        /* patch가 많아도 페이지가 끝없이 길어지지 않게 */
+        max-height: 432px;
         overflow: auto;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 24px 16px;
+        }
+        .areas {
+          grid-template-columns: minmax(0, 1fr);
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Phase 1: Diff · Patch · State History</h1>
+    <h1>MINI-REACT · PHASE 1</h1>
 
+    <h2 class="rule">WORKSPACE</h2>
     <div class="areas">
       <section>
-        <h2>실제 영역</h2>
+        <h3 class="area-head">실제 영역 <small>REAL DOM</small></h3>
         <div id="real" class="area">
           <ul id="list">
             <li>A</li>
@@ -56,20 +240,26 @@
         </div>
       </section>
       <section>
-        <h2>테스트 영역</h2>
-        <textarea id="editor" spellcheck="false"></textarea>
+        <h3 class="area-head">
+          <label for="editor">테스트 영역</label>
+          <small>EDIT HTML</small>
+        </h3>
+        <div class="inset">
+          <textarea id="editor" spellcheck="false"></textarea>
+        </div>
       </section>
     </div>
 
+    <h2 class="rule">CONTROLS</h2>
     <div class="controls">
       <button id="patch">Patch</button>
-      <button id="back">뒤로가기</button>
-      <button id="forward">앞으로가기</button>
+      <button id="back">← 뒤로가기</button>
+      <button id="forward">앞으로가기 →</button>
       <span id="status"></span>
-      <span id="error"></span>
+      <span id="error" role="alert"></span>
     </div>
 
-    <h2>마지막으로 적용한 patch</h2>
+    <h2 class="rule">마지막으로 적용한 PATCH</h2>
     <pre id="patches">[]</pre>
 
     <script type="module" src="./main.js"></script>
