@@ -33,7 +33,7 @@ export function applyPatches(container, patches) {
   const insertions = [];
   for (const entry of targets) {
     const { patch, target } = entry;
-    
+
     switch (patch.type) {
       case 'REPLACE':
         target.replaceWith(createDomNode(document, patch.node));
