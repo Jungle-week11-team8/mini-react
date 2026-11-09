@@ -38,3 +38,19 @@ VNode는 `docs/vnode-spec.md`의 element·text·comment 계약을 유지합니�
 Document·Doctype 지원은 이번 통합에 포함하지 않으며, 관련 테스트는 지원 범위 밖 입력을 검사합니다.
 에러 문구와 클래스는 명세에 없으므로 오류 발생과 DOM 보존을 검증합니다.
 `*.pr22.test.js`, `*.pr23.test.js`는 각 PR에서 가져온 교차 검증 테스트입니다.
+
+### 후속 커밋 이력 보존
+
+[통합 PR #26](https://github.com/Jungle-week11-team8/mini-react/pull/26)은 #21·#22·#23의 원본 커밋을 포함합니다.
+[PR #25](https://github.com/Jungle-week11-team8/mini-react/pull/25)는 #22에 다음 두 커밋을 추가한 후속 PR입니다.
+
+- `fd159b1`: Prettier 포맷 정리
+- `e7850ee`: domToVNode 테스트의 중복 import 제거 및 공개 API 경로 사용
+
+두 수정 내용은 #26 통합 과정에서 이미 반영했지만, 해당 커밋 자체는 통합 이력에 포함되지 않았습니다.
+따라서 `2760aa6`에서 `git merge -s ours`로 #25의 원본 커밋을 연결했습니다.
+이 이력 보존 merge의 파일 트리는 당시 `dev`의 `1983720`과 동일하며, 기존 통합 구현을 덮어쓰지 않습니다.
+
+`fix/pr25-merge-history`는 `dev`에 **Create a merge commit** 방식으로 합칩니다.
+Squash나 rebase로 합치면 이 merge가 보존한 부모 관계가 사라질 수 있으므로 사용하지 않습니다.
+이 기록은 로컬 이력 연결에 대한 설명이며, 원격 PR의 머지 완료를 의미하지 않습니다.
