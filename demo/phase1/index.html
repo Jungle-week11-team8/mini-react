@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mini-react Phase 1</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 16px;
+      }
+      .areas {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .area {
+        border: 1px solid #999;
+        padding: 8px;
+        min-height: 200px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 200px;
+        box-sizing: border-box;
+        font-family: monospace;
+      }
+      .controls {
+        margin: 12px 0;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #error {
+        color: #c00;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 8px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 1: Diff · Patch · State History</h1>
+
+    <div class="areas">
+      <section>
+        <h2>실제 영역</h2>
+        <div id="real" class="area">
+          <ul id="list">
+            <li>A</li>
+            <li>B</li>
+            <li>C</li>
+          </ul>
+        </div>
+      </section>
+      <section>
+        <h2>테스트 영역</h2>
+        <textarea id="editor" spellcheck="false"></textarea>
+      </section>
+    </div>
+
+    <div class="controls">
+      <button id="patch">Patch</button>
+      <button id="back">뒤로가기</button>
+      <button id="forward">앞으로가기</button>
+      <span id="status"></span>
+      <span id="error"></span>
+    </div>
+
+    <h2>마지막으로 적용한 patch</h2>
+    <pre id="patches">[]</pre>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
