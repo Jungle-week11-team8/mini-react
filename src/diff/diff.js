@@ -38,7 +38,28 @@ function walk(oldVNode, newVNode, path, patches) {
   if (Object.keys(set).length > 0 || remove.length > 0) {
     patches.push({ type: 'UPDATE_ATTRS', path, set, remove });
   }
-  // children 비교는 3단계에서 구현한다
+  diffChildren(oldVNode.children, newVNode.children, path, patches);
+}
+
+/**
+ * 자식을 같은 인덱스끼리 비교한다. 남는 쪽은 INSERT 또는 REMOVE가 된다.
+ * @param {import('../vdom/types.js').VNode[]} oldChildren
+ * @param {import('../vdom/types.js').VNode[]} newChildren
+ * @param {import('../vdom/types.js').Path} parentPath
+ * @param {import('../vdom/types.js').Patch[]} patches
+ */
+function diffChildren(oldChildren, newChildren, parentPath, patches) {
+  const length = Math.max(oldChildren.length, newChildren.length);
+  for (let i = 0; i < length; i++) {
+    // path는 매번 새 배열로 만든다. 공유하면 이미 만든 patch의 path까지 바뀐다.
+    if (i >= newChildren.length) {
+      patches.push({ type: 'REMOVE', path: [...parentPath, i] });
+    } else if (i >= oldChildren.length) {
+      patches.push({ type: 'INSERT', parentPath: [...parentPath], index: i, node: newChildren[i] });
+    } else {
+      walk(oldChildren[i], newChildren[i], [...parentPath, i], patches);
+    }
+  }
 }
 
 /**
