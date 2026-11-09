@@ -29,7 +29,7 @@ function expectPatchedToEqual(oldVNode, newVNode) {
 }
 
 // domToVNode · diff · applyPatches가 모두 구현되면 `.skip`을 지운다.
-describe.skip('랜덤 트리: diff 후 patch하면 new 트리와 같은 DOM이 된다', () => {
+describe('랜덤 트리: diff 후 patch하면 new 트리와 같은 DOM이 된다', () => {
   it.each(seeds)('조금 바뀐 트리 (seed %i)', (seed) => {
     const random = createRandom(seed);
     const oldVNode = randomTree(random);
