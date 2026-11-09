@@ -14,12 +14,12 @@
 
 //현재 DOM이 어떤 구조인지 읽어서 객체로 변환
 export function domToVNode(node) {
-  // Text 노드 
+  // Text 노드
   if (node.nodeType === Node.TEXT_NODE) {
     return { type: 'text', text: node.textContent };
   }
 
-  // Comment 노드 
+  // Comment 노드
   if (node.nodeType === Node.COMMENT_NODE) {
     return { type: 'comment', text: node.textContent };
   }
@@ -33,9 +33,9 @@ export function domToVNode(node) {
     // 값 없는 속성(disabled 등)은 빈 문자열 ''로 저장
     //
     // 테스트 조건(attrs가 일반 객체여야 함)을 만족하기 위해 일반 객체({})로 초기화한다.
-    // 단, 일반 객체에 '__proto__' 속성을 일반 할당(=)으로 대입하면 
+    // 단, 일반 객체에 '__proto__' 속성을 일반 할당(=)으로 대입하면
     // 자바스크립트가 특수 명령어로 오해해서 프로토타입 세터가 호출되어 값이 유실되거나 프로토타입이 오염된다.
-    // 이를 방지하기 위해 '__proto__' 속성에 한해서만 Object.defineProperty를 
+    // 이를 방지하기 위해 '__proto__' 속성에 한해서만 Object.defineProperty를
     // 사용하여 안전하게 객체 자체의 속성(own property)으로 저장한다.
     const attrs = {};
     for (const attr of node.attributes) {
@@ -45,7 +45,7 @@ export function domToVNode(node) {
           value: attr.value,
           enumerable: true,
           writable: true,
-          configurable: true
+          configurable: true,
         });
       } else {
         attrs[attr.name] = attr.value;

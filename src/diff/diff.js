@@ -110,7 +110,7 @@ export function diff(oldVNode, newVNode) {
       diffNode(oldChildren[i], newChildren[i], [...parentPath, i], patches);
     }
 
-    // new에만 있는 자식 → INSERT 
+    // new에만 있는 자식 → INSERT
     for (let i = commonLen; i < newChildren.length; i++) {
       patches.push({
         type: 'INSERT',
