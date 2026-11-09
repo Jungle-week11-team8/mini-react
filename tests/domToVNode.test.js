@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { domToVNode } from '../src/vdom/domToVNode.js';
 import { domToVNode } from '../src/index.js';
-
 /* ───────────────────────── 헬퍼 ───────────────────────── */
 
 /** HTML 문자열을 파싱해서 첫 번째 "노드"(공백 포함)를 반환 */
