@@ -24,6 +24,11 @@ export class FunctionComponent {
   /** @type {VNode | null} */
   #vnode = null;
 
+  /** @type {Array<() => void> | null} */
+  #pendingEffects = null;
+  #isFlushingEffects = false;
+  #updateAfterEffects = false;
+
   /**
    * @param {(props: object) => VNode} render 루트 VNode 하나를 반환하는 함수
    * @param {Element} container 루트 VNode를 삽입할 빈 컨테이너
@@ -41,9 +46,11 @@ export class FunctionComponent {
       throw new Error('mount()는 빈 컨테이너에서 처음 한 번만 호출할 수 있습니다.');
     }
 
-    const vnode = this.#renderVNode();
-    applyPatches(this.#container, [{ type: 'INSERT', parentPath: [], index: 0, node: vnode }]);
-    this.#vnode = vnode;
+    const { vnode, effects } = this.#renderVNode();
+    this.#commit(vnode, [{ type: 'INSERT', parentPath: [], index: 0, node: vnode }], effects);
+    if (this.#updateAfterEffects) {
+      this.update();
+    }
   }
 
   /**
@@ -60,27 +67,61 @@ export class FunctionComponent {
     this.update();
   }
 
+  /** @param {() => void} effect DOM 반영 뒤 실행할 작업 */
+  scheduleEffect(effect) {
+    if (this.#pendingEffects === null) {
+      throw new Error('Effect는 렌더 중에만 등록할 수 있습니다.');
+    }
+    this.#pendingEffects.push(effect);
+  }
+
   update() {
     if (this.#vnode === null) {
       throw new Error('update() 전에 mount()를 호출해야 합니다.');
     }
 
-    const vnode = this.#renderVNode();
-    applyPatches(this.#container, diff(this.#vnode, vnode));
+    // 이전 렌더의 effect를 모두 실행한 뒤 다음 갱신을 시작한다.
+    if (this.#isFlushingEffects) {
+      this.#updateAfterEffects = true;
+      return;
+    }
+
+    do {
+      this.#updateAfterEffects = false;
+      const { vnode, effects } = this.#renderVNode();
+      this.#commit(vnode, diff(this.#vnode, vnode), effects);
+    } while (this.#updateAfterEffects);
+  }
+
+  #commit(vnode, patches, effects) {
+    applyPatches(this.#container, patches);
     this.#vnode = vnode;
+
+    this.#isFlushingEffects = true;
+    try {
+      for (const effect of effects) {
+        effect();
+      }
+    } finally {
+      this.#isFlushingEffects = false;
+    }
   }
 
   #renderVNode() {
     const previousComponent = currentComponent;
     const render = this.#render;
+    const effects = [];
     currentComponent = this;
+    this.#pendingEffects = effects;
     // 상태는 배열에 남기고, 같은 호출 순서로 다시 읽도록 인덱스만 초기화한다.
     this.hookIndex = 0;
 
     try {
-      return render(this.#props);
+      const vnode = render(this.#props);
+      return { vnode, effects };
     } finally {
       // 렌더에서 오류가 나도 이후 Hook 호출에 이 인스턴스가 남지 않게 한다.
+      this.#pendingEffects = null;
       currentComponent = previousComponent;
     }
   }
