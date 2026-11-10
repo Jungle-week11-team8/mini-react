@@ -5,6 +5,9 @@ import { applyPatches, createNode } from '../patch/index.js';
 /** @type {FunctionComponent | null} */
 let currentComponent = null;
 
+// effect 안 setState가 끝없이 렌더를 부르는 실수를 에러로 드러내기 위한 상한
+const MAX_EFFECT_RENDERS = 50;
+
 /**
  * 지금 렌더 중인 컴포넌트를 돌려준다. 렌더 중이 아니면 null이다.
  * @returns {FunctionComponent | null}
@@ -34,6 +37,11 @@ export class FunctionComponent {
     this.hookIndex = 0;
     // 렌더 예약이 겹치지 않게, 예약 중인지 표시한다
     this.updateScheduled = false;
+    // effect는 DOM 반영 뒤에 실행해야 하므로, 렌더 중에는 모아 두기만 한다
+    this.pendingEffects = [];
+    // effect 실행 중에 예약된 렌더인지 알아야 연속 횟수를 셀 수 있다
+    this.isRunningEffects = false;
+    this.effectRenderCount = 0;
   }
 
   /**
@@ -43,6 +51,7 @@ export class FunctionComponent {
   render() {
     // 훅은 매 렌더 같은 순서로 호출되므로, 첫 칸부터 다시 읽게 책갈피를 되돌린다
     this.hookIndex = 0;
+    this.pendingEffects = [];
     currentComponent = this;
     try {
       return this.fn(this.props);
@@ -62,6 +71,7 @@ export class FunctionComponent {
     this.vnode = this.render();
     // 실제 DOM 변경은 patch 모듈에만 둔다
     container.appendChild(createNode(this.vnode));
+    this.runEffects();
   }
 
   /**
@@ -72,6 +82,26 @@ export class FunctionComponent {
     applyPatches(this.container, diff(this.vnode, nextVNode));
     // 다음 update는 지금 화면과 비교해야 하므로 기준을 바꿔 둔다
     this.vnode = nextVNode;
+    this.runEffects();
+  }
+
+  /**
+   * 렌더 중에 모아 둔 effect를 호출 순서대로 실행한다.
+   */
+  runEffects() {
+    const effects = this.pendingEffects;
+    this.pendingEffects = [];
+    this.isRunningEffects = true;
+    try {
+      for (const { hook, effect } of effects) {
+        // 새 effect가 이전 effect의 흔적 위에서 돌지 않도록 먼저 정리한다
+        if (hook.cleanup) hook.cleanup();
+        const cleanup = effect();
+        hook.cleanup = typeof cleanup === 'function' ? cleanup : undefined;
+      }
+    } finally {
+      this.isRunningEffects = false;
+    }
   }
 
   /**
@@ -81,8 +111,14 @@ export class FunctionComponent {
     // 이미 예약했다면 여러 번 바뀐 상태를 다음 렌더 한 번에 함께 반영한다
     if (this.updateScheduled) return;
     this.updateScheduled = true;
+    const fromEffect = this.isRunningEffects;
     queueMicrotask(() => {
       this.updateScheduled = false;
+      // effect가 부른 렌더만 이어서 세고, 사용자 동작 같은 다른 렌더가 오면 다시 0부터 센다
+      this.effectRenderCount = fromEffect ? this.effectRenderCount + 1 : 0;
+      if (this.effectRenderCount > MAX_EFFECT_RENDERS) {
+        throw new Error(`effect 안의 setState로 렌더가 ${MAX_EFFECT_RENDERS}번 넘게 이어졌습니다.`);
+      }
       this.update();
     });
   }

@@ -3,4 +3,4 @@ export { domToVNode } from './vdom/index.js';
 export { diff } from './diff/index.js';
 export { applyPatches } from './patch/index.js';
 export { FunctionComponent } from './component/index.js';
-export { useState } from './hooks/index.js';
+export { useState, useEffect } from './hooks/index.js';
