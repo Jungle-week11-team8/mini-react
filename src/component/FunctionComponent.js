@@ -10,7 +10,7 @@ export function getCurrentComponent() {
   if (currentComponent === null) {
     throw new Error('Hook은 루트 컴포넌트의 렌더 중에만 호출할 수 있습니다.');
   }
-  return currentComponent;  
+  return currentComponent;
 }
 
 export class FunctionComponent {
@@ -44,6 +44,20 @@ export class FunctionComponent {
     const vnode = this.#renderVNode();
     applyPatches(this.#container, [{ type: 'INSERT', parentPath: [], index: 0, node: vnode }]);
     this.#vnode = vnode;
+  }
+
+  /**
+   * @param {number} slot 상태를 저장한 Hook의 인덱스
+   * @param {unknown} nextValue 저장할 상태 값
+   */
+  setState(slot, nextValue) {
+    // 렌더가 끝나기 전에 다시 렌더하거나 상태를 쓰면 진행 중인 계산과 어긋난다.
+    if (currentComponent !== null) {
+      throw new Error('렌더 중에는 상태를 변경할 수 없습니다.');
+    }
+
+    this.hooks[slot] = nextValue;
+    this.update();
   }
 
   update() {
