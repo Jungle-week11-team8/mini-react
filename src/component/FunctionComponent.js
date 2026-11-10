@@ -30,11 +30,10 @@ export class FunctionComponent {
     this.props = props;
     this.container = container;
 
-    // 상태 저장용 hooks 배열과 인덱스
-    this.hooks = [];
-    this.hookIndex = 0;
+    this.hooks = []; // 함수가 다시 실행되어도 상태가 사라지지 않도록 하는 저장 공간
+    this.hookIndex = 0; // 현재 어떤 Hook을 사용하고 있는지 구분하는 인덱스
 
-    // 이전 VNode 스냅샷 보관용
+    // 다음 화면과 비교할 수 있도록 이전 화면의 Virtual DOM을 기억 
     this.prevVdom = null;
 
     // useEffect에서 사용할 실행 대기 effect 큐

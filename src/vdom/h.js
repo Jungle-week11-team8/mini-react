@@ -1,6 +1,6 @@
 /**
  * JSX나 선언적 컴포넌트 작성을 위한 VNode 생성 헬퍼 함수
- * 실제 DOM이 아니라 Vnode 객체를 반환
+ * 실제 DOM이 아니라 VNode 객체를 반환 -> createDom()이 이 VNode를 실제 브라우저 DOM으로 변환
  *
  * @param {string} tag - HTML 태그명
  * @param {Record<string, string>} [attrs={}] - 속성 객체
