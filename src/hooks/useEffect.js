@@ -1,4 +1,5 @@
 import { getCurrentComponent } from '../component/index.js';
+import { depsChanged } from './depsChanged.js';
 
 /**
  * 렌더가 DOM에 반영된 뒤 effect를 실행한다. 의존성이 그대로면 건너뛴다.
@@ -15,20 +16,9 @@ export function useEffect(effect, deps) {
   if (isFirst) component.hooks.push({ deps: undefined, cleanup: undefined });
   const hook = component.hooks[index];
 
-  if (isFirst || !deps || !hook.deps || depsChanged(hook.deps, deps)) {
+  if (isFirst || depsChanged(hook.deps, deps)) {
     hook.deps = deps;
     // 지금은 DOM이 아직 바뀌기 전이라, 실행은 component가 반영을 마친 뒤에 한다
     component.pendingEffects.push({ hook, effect });
   }
-}
-
-/**
- * @param {unknown[]} prevDeps
- * @param {unknown[]} nextDeps
- */
-function depsChanged(prevDeps, nextDeps) {
-  // Object.is는 NaN을 같은 값으로 보므로, NaN이 그대로면 다시 실행하지 않는다
-  return (
-    prevDeps.length !== nextDeps.length || nextDeps.some((dep, i) => !Object.is(dep, prevDeps[i]))
-  );
 }
