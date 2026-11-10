@@ -46,7 +46,7 @@ function resolvePath(container, path) {
  * @param {import('../vdom/types.js').VNode} vnode
  * @returns {Node}
  */
-export function createNode(vnode) {
+function createNode(vnode) {
   if (vnode.type === 'text') return document.createTextNode(vnode.text);
   if (vnode.type === 'comment') return document.createComment(vnode.text);
   const element = document.createElement(vnode.tag);

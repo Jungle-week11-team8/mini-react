@@ -20,8 +20,9 @@ export function useMemo(factory, deps) {
 
   // effect와 달리 반환값이 렌더 결과에 바로 쓰이므로, 렌더 중에 바로 계산한다
   if (isFirst || depsChanged(hook.deps, deps)) {
+    const nextDeps = deps === undefined ? undefined : [...deps];
     hook.value = factory();
-    hook.deps = deps;
+    hook.deps = nextDeps;
   }
   return hook.value;
 }

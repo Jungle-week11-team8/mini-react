@@ -17,8 +17,11 @@ export function useEffect(effect, deps) {
   const hook = component.hooks[index];
 
   if (isFirst || depsChanged(hook.deps, deps)) {
-    hook.deps = deps;
     // 지금은 DOM이 아직 바뀌기 전이라, 실행은 component가 반영을 마친 뒤에 한다
-    component.pendingEffects.push({ hook, effect });
+    component.pendingEffects.push({
+      hook,
+      effect,
+      deps: deps === undefined ? undefined : [...deps],
+    });
   }
 }

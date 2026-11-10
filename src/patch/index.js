@@ -1,1 +1,1 @@
-export { applyPatches, createNode } from './applyPatches.js';
+export { applyPatches } from './applyPatches.js';

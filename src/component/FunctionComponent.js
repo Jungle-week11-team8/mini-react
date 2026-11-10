@@ -1,5 +1,5 @@
 import { diff } from '../diff/index.js';
-import { applyPatches, createNode } from '../patch/index.js';
+import { applyPatches } from '../patch/index.js';
 
 // 훅은 인자로 컴포넌트를 받지 않으므로, 지금 렌더 중인 컴포넌트를 여기서 알려 준다
 /** @type {FunctionComponent | null} */
@@ -29,6 +29,7 @@ export class FunctionComponent {
     if (typeof fn !== 'function') {
       throw new TypeError('FunctionComponent의 첫 번째 인자는 함수여야 합니다.');
     }
+    this.isMounted = false;
     this.fn = fn;
     this.props = props;
     // 함수는 실행이 끝나면 지역 변수를 잃으므로, 훅의 값은 인스턴스가 대신 기억한다
@@ -52,12 +53,13 @@ export class FunctionComponent {
     // 훅은 매 렌더 같은 순서로 호출되므로, 첫 칸부터 다시 읽게 책갈피를 되돌린다
     this.hookIndex = 0;
     this.pendingEffects = [];
+    const previousComponent = currentComponent;
     currentComponent = this;
     try {
       return this.fn(this.props);
     } finally {
       // fn이 에러를 던져도 렌더가 끝났다고 표시해야 렌더 밖 훅 호출을 막을 수 있다
-      currentComponent = null;
+      currentComponent = previousComponent;
     }
   }
 
@@ -66,11 +68,14 @@ export class FunctionComponent {
    * @param {Element} container
    */
   mount(container) {
-    // update에서 같은 자리에 다시 그리고, 이전 VNode와 비교하려고 둘 다 기억한다
+    if (this.isMounted || container.childNodes.length !== 0) {
+      throw new Error('mount()는 빈 컨테이너에서 처음 한 번만 호출할 수 있습니다.');
+    }
+    const vnode = this.render();
+    applyPatches(container, [{ type: 'INSERT', parentPath: [], index: 0, node: vnode }]);
     this.container = container;
-    this.vnode = this.render();
-    // 실제 DOM 변경은 patch 모듈에만 둔다
-    container.appendChild(createNode(this.vnode));
+    this.vnode = vnode;
+    this.isMounted = true;
     this.runEffects();
   }
 
@@ -78,6 +83,12 @@ export class FunctionComponent {
    * 다시 렌더해서 이전 VNode와 비교하고, 바뀐 곳만 실제 DOM에 반영한다.
    */
   update() {
+    if (!this.isMounted) throw new Error('update() 전에 mount()를 호출해야 합니다.');
+    // 실행 중인 effect의 cleanup과 의존성을 저장한 뒤 다음 렌더를 시작한다.
+    if (this.isRunningEffects) {
+      this.scheduleUpdate();
+      return;
+    }
     const nextVNode = this.render();
     applyPatches(this.container, diff(this.vnode, nextVNode));
     // 다음 update는 지금 화면과 비교해야 하므로 기준을 바꿔 둔다
@@ -93,10 +104,15 @@ export class FunctionComponent {
     this.pendingEffects = [];
     this.isRunningEffects = true;
     try {
-      for (const { hook, effect } of effects) {
+      for (const { hook, effect, deps } of effects) {
         // 새 effect가 이전 effect의 흔적 위에서 돌지 않도록 먼저 정리한다
-        if (hook.cleanup) hook.cleanup();
+        const previousCleanup = hook.cleanup;
+        // 실패한 effect는 재시도하되, 이미 호출한 cleanup은 다시 실행하지 않는다.
+        hook.cleanup = undefined;
+        hook.deps = undefined;
+        if (previousCleanup) previousCleanup();
         const cleanup = effect();
+        hook.deps = deps;
         hook.cleanup = typeof cleanup === 'function' ? cleanup : undefined;
       }
     } finally {
