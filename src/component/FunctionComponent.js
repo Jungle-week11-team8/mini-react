@@ -30,8 +30,8 @@ export class FunctionComponent {
     this.props = props;
     this.container = container;
 
-    this.hooks = []; // 함수가 다시 실행되어도 상태가 사라지지 않도록 하는 저장 공간
-    this.hookIndex = 0; // 현재 어떤 Hook을 사용하고 있는지 구분하는 인덱스
+    this.hooks = []; // 각 Hook의 상태값을 저장하는 배열
+    this.hookIndex = 0; // 현재 실행 중인 Hook이 사용할 배열의 위치
 
     // 다음 화면과 비교할 수 있도록 이전 화면의 Virtual DOM을 기억 
     this.prevVdom = null;
@@ -53,11 +53,11 @@ export class FunctionComponent {
    */
   render() {
     this.hookIndex = 0;
-    setCurrentComponent(this);
+    setCurrentComponent(this); // 현재 렌더링하는 컴포넌트 등록
     try {
-      return this.componentFn(this.props);
+      return this.componentFn(this.props); // 컴포넌트 내부의 useState() 호출 -> useState에서 getCurrentComponent()를 호출하면 앞서 등록한 컴포넌트 인스턴스를 가져옴
     } finally {
-      setCurrentComponent(null);
+      setCurrentComponent(null); // 현재 컴포넌트 정보를 정리
     }
   }
 
