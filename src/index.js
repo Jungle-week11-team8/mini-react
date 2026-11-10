@@ -2,3 +2,4 @@
 export { domToVNode } from './vdom/index.js';
 export { diff } from './diff/index.js';
 export { applyPatches } from './patch/index.js';
+export { FunctionComponent } from './component/index.js';
