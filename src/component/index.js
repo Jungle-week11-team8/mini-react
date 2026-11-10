@@ -1,1 +1,1 @@
-export { FunctionComponent } from './FunctionComponent.js';
+export { FunctionComponent, getCurrentComponent } from './FunctionComponent.js';
