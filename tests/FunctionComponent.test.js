@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FunctionComponent } from '../src/index.js';
+import { FunctionComponent, domToVNode } from '../src/index.js';
 
 const App = () => ({ type: 'text', text: 'A' });
 
@@ -29,6 +29,48 @@ describe('FunctionComponent', () => {
     it('fn이 함수가 아니면 TypeError가 난다', () => {
       expect(() => new FunctionComponent(null)).toThrow(TypeError);
       expect(() => new FunctionComponent({ type: 'text', text: 'A' })).toThrow(TypeError);
+    });
+  });
+
+  describe('mount', () => {
+    const Title = (props) => ({
+      type: 'element',
+      tag: 'h1',
+      attrs: { class: 'title' },
+      children: [{ type: 'text', text: props.text }],
+    });
+
+    it('fn이 반환한 VNode대로 container에 실제 DOM을 그린다', () => {
+      const container = document.createElement('div');
+      new FunctionComponent(Title, { text: 'A' }).mount(container);
+      expect(domToVNode(container.childNodes[0])).toEqual(Title({ text: 'A' }));
+    });
+
+    it('fn은 생성자에서 받은 props를 인자로 받는다', () => {
+      const container = document.createElement('div');
+      new FunctionComponent(Title, { text: 'B' }).mount(container);
+      expect(container.textContent).toBe('B');
+    });
+
+    // update에서 container를 다시 찾고, 이전 VNode와 diff해야 하므로 둘 다 기억해야 한다
+    it('mount 후 container와 그린 VNode를 보관한다', () => {
+      const container = document.createElement('div');
+      const component = new FunctionComponent(Title, { text: 'A' });
+      component.mount(container);
+      expect(component.container).toBe(container);
+      expect(component.vnode).toEqual(Title({ text: 'A' }));
+    });
+
+    // 훅은 호출 순서로 칸을 찾으므로, 렌더마다 첫 칸부터 다시 읽어야 한다
+    it('render를 시작할 때 hookIndex가 0으로 돌아간다', () => {
+      let seen;
+      const component = new FunctionComponent(() => {
+        seen = component.hookIndex;
+        return { type: 'text', text: 'A' };
+      });
+      component.hookIndex = 3;
+      component.mount(document.createElement('div'));
+      expect(seen).toBe(0);
     });
   });
 });
