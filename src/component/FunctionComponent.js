@@ -1,4 +1,5 @@
-import { createNode } from '../patch/index.js';
+import { diff } from '../diff/index.js';
+import { applyPatches, createNode } from '../patch/index.js';
 
 /**
  * 함수형 컴포넌트 하나와 그 컴포넌트의 상태를 담는 그릇이다.
@@ -41,5 +42,15 @@ export class FunctionComponent {
     this.vnode = this.render();
     // 실제 DOM 변경은 patch 모듈에만 둔다
     container.appendChild(createNode(this.vnode));
+  }
+
+  /**
+   * 다시 렌더해서 이전 VNode와 비교하고, 바뀐 곳만 실제 DOM에 반영한다.
+   */
+  update() {
+    const nextVNode = this.render();
+    applyPatches(this.container, diff(this.vnode, nextVNode));
+    // 다음 update는 지금 화면과 비교해야 하므로 기준을 바꿔 둔다
+    this.vnode = nextVNode;
   }
 }

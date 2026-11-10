@@ -73,4 +73,53 @@ describe('FunctionComponent', () => {
       expect(seen).toBe(0);
     });
   });
+
+  describe('update', () => {
+    // 훅이 아직 없으므로, 바깥 변수로 "상태가 바뀐 상황"을 흉내 낸다
+    function setup() {
+      const state = { text: 'A' };
+      const Title = () => ({
+        type: 'element',
+        tag: 'h1',
+        attrs: {},
+        children: [{ type: 'text', text: state.text }],
+      });
+      const container = document.createElement('div');
+      const component = new FunctionComponent(Title);
+      component.mount(container);
+      return { state, Title, container, component };
+    }
+
+    it('다시 렌더한 VNode대로 실제 DOM을 고친다', () => {
+      const { state, Title, container, component } = setup();
+      state.text = 'B';
+      component.update();
+      expect(domToVNode(container.childNodes[0])).toEqual(Title());
+    });
+
+    // 다음 update는 방금 그린 화면과 비교해야 하므로 기준 VNode를 갈아 끼운다
+    it('update 후 vnode가 새 VNode로 바뀐다', () => {
+      const { state, Title, component } = setup();
+      state.text = 'B';
+      component.update();
+      expect(component.vnode).toEqual(Title());
+    });
+
+    // 통째로 다시 그리지 않고 diff로 바뀐 곳만 고쳤는지 확인한다
+    it('바뀌지 않은 루트 요소는 같은 DOM 노드로 남는다', () => {
+      const { state, container, component } = setup();
+      const root = container.childNodes[0];
+      state.text = 'B';
+      component.update();
+      expect(container.childNodes[0]).toBe(root);
+      expect(container.childNodes.length).toBe(1);
+    });
+
+    it('update도 hookIndex를 0으로 되돌린 뒤 렌더한다', () => {
+      const { component } = setup();
+      component.hookIndex = 2;
+      component.update();
+      expect(component.hookIndex).toBe(0);
+    });
+  });
 });
