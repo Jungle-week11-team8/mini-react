@@ -16,7 +16,12 @@ export function createDom(vnode) {
   // element
   const el = document.createElement(vnode.tag);
   for (const [name, value] of Object.entries(vnode.attrs)) {
-    el.setAttribute(name, value);
+    if (name.startsWith('on') && typeof value === 'function') {
+      const eventProp = 'on' + name.slice(2).toLowerCase();
+      el[eventProp] = value;
+    } else {
+      el.setAttribute(name, value);
+    }
   }
   for (const child of vnode.children) {
     el.appendChild(createDom(child));

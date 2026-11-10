@@ -33,11 +33,12 @@ export function h(tag, attrs = {}, ...rawChildren) {
     normalize(child);
   }
 
-  // attrs 안전 복사 및 문자열화
+  // attrs 안전 복사 및 값 정규화
   const normalizedAttrs = Object.create(null);
   if (attrs) {
     for (const [key, value] of Object.entries(attrs)) {
-      normalizedAttrs[key] = String(value);
+      // 이벤트 핸들러 등 함수 타입 속성은 문자열로 변환하지 않고 그대로 보존
+      normalizedAttrs[key] = typeof value === 'function' ? value : String(value);
     }
   }
 

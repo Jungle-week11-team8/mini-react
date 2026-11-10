@@ -1,3 +1,5 @@
+import { createDom } from '../vdom/createDom.js';
+
 /**
  * container 안의 DOM에 patch를 적용한다. 적용 순서는 docs/vnode-spec.md 5절을 따른다.
  * @param {Element} container 루트 노드를 감싸는 부모. 루트는 container.childNodes[0]이다.
@@ -15,17 +17,31 @@ export function applyPatches(container, patches) {
 
   for (const { node } of withTarget('REMOVE')) node.remove();
 
-  for (const { patch, node } of withTarget('REPLACE')) node.replaceWith(createNode(patch.node));
+  for (const { patch, node } of withTarget('REPLACE')) node.replaceWith(createDom(patch.node));
   for (const { patch, node } of withTarget('SET_DATA')) node.data = patch.value;
   for (const { patch, node } of withTarget('UPDATE_ATTRS')) {
-    for (const [name, value] of Object.entries(patch.set)) node.setAttribute(name, value);
-    for (const name of patch.remove) node.removeAttribute(name);
+    for (const [name, value] of Object.entries(patch.set)) {
+      if (name.startsWith('on') && typeof value === 'function') {
+        const eventProp = 'on' + name.slice(2).toLowerCase();
+        node[eventProp] = value;
+      } else {
+        node.setAttribute(name, value);
+      }
+    }
+    for (const name of patch.remove) {
+      if (name.startsWith('on')) {
+        const eventProp = 'on' + name.slice(2).toLowerCase();
+        node[eventProp] = null;
+      } else {
+        node.removeAttribute(name);
+      }
+    }
   }
 
   // index는 new children 기준이라 오름차순으로 넣어야 앞 자리가 먼저 채워진다
   const inserts = withTarget('INSERT').sort((a, b) => a.patch.index - b.patch.index);
   for (const { patch, node: parent } of inserts) {
-    parent.insertBefore(createNode(patch.node), parent.childNodes[patch.index] ?? null);
+    parent.insertBefore(createDom(patch.node), parent.childNodes[patch.index] ?? null);
   }
 }
 
@@ -39,18 +55,4 @@ function resolvePath(container, path) {
   // 잘못된 path를 조용히 넘기면 엉뚱한 DOM이 남으므로 바로 알린다
   if (!node) throw new Error(`applyPatches: path [${path}]에 노드가 없습니다.`);
   return node;
-}
-
-/**
- * VNode로 실제 DOM 노드를 만든다. element는 자식까지 재귀로 만든다.
- * @param {import('../vdom/types.js').VNode} vnode
- * @returns {Node}
- */
-function createNode(vnode) {
-  if (vnode.type === 'text') return document.createTextNode(vnode.text);
-  if (vnode.type === 'comment') return document.createComment(vnode.text);
-  const element = document.createElement(vnode.tag);
-  for (const [name, value] of Object.entries(vnode.attrs)) element.setAttribute(name, value);
-  for (const child of vnode.children) element.appendChild(createNode(child));
-  return element;
 }
