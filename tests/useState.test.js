@@ -28,6 +28,22 @@ describe('useState', () => {
     expect(container.textContent).toBe('3 / undefined');
   });
 
+  it('undefined로 초기화한 상태는 다시 렌더해도 유지한다', () => {
+    const container = document.createElement('div');
+    let initialValue;
+    const component = new FunctionComponent(() => {
+      const [value] = useState(initialValue);
+      return { type: 'text', text: value === undefined ? '미정' : value };
+    }, container);
+
+    component.mount();
+    expect(container.textContent).toBe('미정');
+
+    initialValue = '새 초기값';
+    component.update();
+    expect(container.textContent).toBe('미정');
+  });
+
   it('루트 렌더 밖에서 호출하면 오류를 낸다', () => {
     expect(() => useState(0)).toThrow('Hook은 루트 컴포넌트의 렌더 중에만 호출할 수 있습니다.');
   });

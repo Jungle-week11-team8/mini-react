@@ -8,7 +8,7 @@ import { getCurrentComponent } from '../component/index.js';
 export function useState(initialValue) {
   const { component, slot } = getNextHookSlot();
 
-  // undefined도 저장할 수 있으므로 값 대신 슬롯의 존재 여부로 초기화를 판단한다.
+  // undefined(js에서 값이 지정되지 않았을 때 흔히 나오는 값)도 저장할 수 있으므로 값 대신 슬롯의 존재 여부로 초기화를 판단한다.
   if (!Object.hasOwn(component.hooks, slot)) {
     component.hooks[slot] = initialValue;
   }
@@ -30,6 +30,7 @@ export function useEffect(effect, dependencies) {
   const nextDependencies = dependencies === undefined ? undefined : Array.from(dependencies);
   component.scheduleEffect(() => {
     // 정리나 effect에서 오류가 나면 다음 갱신에서 이전 effect를 다시 정리하지 않는다.
+    // '?.'는 옵셔널 체이닝. previous가 undefined나 null이면 cleanup에 undefined, 있으면 previous.cleanup 값을 읽음
     const cleanup = previous?.cleanup;
     delete component.hooks[slot];
     if (typeof cleanup === 'function') {

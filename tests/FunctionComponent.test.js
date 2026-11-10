@@ -116,7 +116,9 @@ describe('FunctionComponent', () => {
     component.mount();
     const root = container.firstChild;
 
-    expect(() => component.mount()).toThrow('mount()는 빈 컨테이너에서 처음 한 번만 호출할 수 있습니다.');
+    expect(() => component.mount()).toThrow(
+      'mount()는 빈 컨테이너에서 처음 한 번만 호출할 수 있습니다.',
+    );
     expect(container.childNodes).toHaveLength(1);
     expect(container.firstChild).toBe(root);
   });
