@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi } from 'vitest';
 import { FunctionComponent, h, useState } from '../src/index.js';
 
@@ -10,9 +9,7 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
   it('렌더 외부에서 useState를 호출하면 명확한 에러를 던진다', () => {
     expect(() => {
       useState(0);
-    }).toThrow(
-      'useState: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.'
-    );
+    }).toThrow('useState: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.');
   });
 
   it('여러 useState를 호출해도 순서대로 독립된 슬롯에 저장되고 재렌더 시 유지된다', () => {
@@ -77,24 +74,19 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
       const [count, setCount] = useState(0);
       inc = () => setCount(count + 1);
 
-      return h('div', { id: 'counter' },
-        h('span', {}, `현재 카운트: ${count}`)
-      );
+      return h('div', { id: 'counter' }, h('span', {}, `현재 카운트: ${count}`));
     };
 
     const comp = new FunctionComponent(Counter, {}, container);
     comp.mount();
 
-    expect(container.querySelector('span').textContent)
-      .toBe('현재 카운트: 0');
+    expect(container.querySelector('span').textContent).toBe('현재 카운트: 0');
 
     inc();
-    expect(container.querySelector('span').textContent)
-      .toBe('현재 카운트: 1');
+    expect(container.querySelector('span').textContent).toBe('현재 카운트: 1');
 
     inc();
-    expect(container.querySelector('span').textContent)
-      .toBe('현재 카운트: 2');
+    expect(container.querySelector('span').textContent).toBe('현재 카운트: 2');
   });
 
   it('새 값이 이전 값과 Object.is로 같으면 update(리렌더링)를 생략한다', () => {
@@ -205,11 +197,11 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
 
     expect(container.innerHTML).toBe('<div>Count: 0</div>');
 
-    setCountFn(prev => prev + 5);
+    setCountFn((prev) => prev + 5);
 
     expect(container.innerHTML).toBe('<div>Count: 5</div>');
 
-    setCountFn(prev => prev * 2);
+    setCountFn((prev) => prev * 2);
 
     expect(container.innerHTML).toBe('<div>Count: 10</div>');
   });
@@ -228,9 +220,9 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
     const comp = new FunctionComponent(App, {}, container);
     comp.mount();
 
-    setCount(prev => prev + 1);
-    setCount(prev => prev + 1);
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
+    setCount((prev) => prev + 1);
+    setCount((prev) => prev + 1);
 
     expect(container.textContent).toBe('3');
   });
@@ -243,10 +235,7 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
       const [count, set] = useState(0);
       setCount = set;
 
-      return h('div', {},
-        h('span', {}, String(count)),
-        h('p', {}, '변경되지 않는 내용')
-      );
+      return h('div', {}, h('span', {}, String(count)), h('p', {}, '변경되지 않는 내용'));
     };
 
     const comp = new FunctionComponent(App, {}, container);
@@ -280,27 +269,32 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
     expect(comp.hooks[0]()).toBe(42);
   });
 
-
   it('자식 컴포넌트에 콜백 props를 전달하여 부모 상태를 갱신할 수 있다', () => {
     const container = createContainer();
 
     const Button = ({ onClick, label }) => {
-      return h('button', {
-        'data-label': label,
-        onClick
-      }, label);
+      return h(
+        'button',
+        {
+          'data-label': label,
+          onClick,
+        },
+        label,
+      );
     };
 
     const Accordion = () => {
       const [isOpen, setIsOpen] = useState(false);
-      const toggleOpen = () => setIsOpen(prev => !prev);
+      const toggleOpen = () => setIsOpen((prev) => !prev);
 
-      return h('div', {},
+      return h(
+        'div',
+        {},
         Button({
           onClick: toggleOpen,
-          label: isOpen ? '닫기' : '열기'
+          label: isOpen ? '닫기' : '열기',
         }),
-        isOpen ? h('p', {}, '상세 내용 표시') : null
+        isOpen ? h('p', {}, '상세 내용 표시') : null,
       );
     };
 
@@ -320,5 +314,4 @@ describe('Phase 2 — Step 2: State (useState & 반응형 갱신)', () => {
     expect(container.querySelector('button').textContent).toBe('열기');
     expect(container.querySelector('p')).toBeNull();
   });
-
 });

@@ -15,4 +15,3 @@ export function getCurrentComponent() {
 export function setCurrentComponent(comp) {
   currentComponent = comp;
 }
-

@@ -1,13 +1,5 @@
-
 import { describe, it, expect, vi } from 'vitest';
-import {
-  FunctionComponent,
-  h,
-  useState,
-  useEffect,
-  useMemo,
-  areDepsEqual,
-} from '../src/index.js';
+import { FunctionComponent, h, useState, useEffect, useMemo, areDepsEqual } from '../src/index.js';
 
 describe('Phase 2 — Step 3: Hooks (areDepsEqual, useMemo, useEffect)', () => {
   function createContainer() {
@@ -60,9 +52,7 @@ describe('Phase 2 — Step 3: Hooks (areDepsEqual, useMemo, useEffect)', () => {
     it('렌더 외부에서 useMemo 호출 시 에러를 던진다', () => {
       expect(() => {
         useMemo(() => 42, []);
-      }).toThrow(
-        'useMemo: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.',
-      );
+      }).toThrow('useMemo: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.');
     });
 
     it('최초 렌더 시 동기적으로 계산하여 값을 반환한다', () => {
@@ -176,10 +166,8 @@ describe('Phase 2 — Step 3: Hooks (areDepsEqual, useMemo, useEffect)', () => {
   describe('useEffect', () => {
     it('렌더 외부에서 useEffect 호출 시 에러를 던진다', () => {
       expect(() => {
-        useEffect(() => { }, []);
-      }).toThrow(
-        'useEffect: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.',
-      );
+        useEffect(() => {}, []);
+      }).toThrow('useEffect: 컴포넌트 렌더링 외부에서 Hook을 호출할 수 없습니다.');
     });
 
     it('DOM Commit 완료 후 effect를 실행한다', () => {
@@ -318,21 +306,11 @@ describe('Phase 2 — Step 3: Hooks (areDepsEqual, useMemo, useEffect)', () => {
 
       setCount(2);
 
-      expect(logs).toEqual([
-        'effect-1',
-        'cleanup-1',
-        'effect-2',
-      ]);
+      expect(logs).toEqual(['effect-1', 'cleanup-1', 'effect-2']);
 
       setCount(3);
 
-      expect(logs).toEqual([
-        'effect-1',
-        'cleanup-1',
-        'effect-2',
-        'cleanup-2',
-        'effect-3',
-      ]);
+      expect(logs).toEqual(['effect-1', 'cleanup-1', 'effect-2', 'cleanup-2', 'effect-3']);
     });
 
     it('deps가 변경되지 않으면 cleanup도 호출하지 않는다', () => {

@@ -2,12 +2,12 @@ import { getCurrentComponent } from './current.js';
 import { areDepsEqual } from './areDepsEqual.js';
 
 /**
- * 계산 비용이 큰 연산의 결과값을 의존성 배열(deps)이 바뀔 때까지 캐싱한다. 
+ * 계산 비용이 큰 연산의 결과값을 의존성 배열(deps)이 바뀔 때까지 캐싱한다.
  *
  * 동작 메커니즘:
  * 1. 렌더 도중 동기적으로 실행된다.  
  * 2. comp.hooks[index]에 { value, deps } 객체 형태로 캐시를 저장한다.  
- * 3. 이전 deps와 현재 deps가 areDepsEqual로 같으면 계산 함수를 재실행하지 않고 캐시된 value를 반환한다. 
+ * 3. 이전 deps와 현재 deps가 areDepsEqual로 같으면 계산 함수를 재실행하지 않고 캐시된 value를 반환한다.
  * 4. 최초 렌더링이거나 deps가 달라졌으면 factory()를 실행하여 새 value를 계산하고 캐시를 갱신한다.  
  *
  * @template T
@@ -42,4 +42,3 @@ export function useMemo(factory, deps) {
 
   return value;
 }
-

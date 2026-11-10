@@ -6,9 +6,9 @@ import { getCurrentComponent } from './current.js';
  * 동작 메커니즘:
  * 1. currentComponent를 통해 현재 렌더링 중인 FunctionComponent 인스턴스를 찾는다.
  * 2. 컴포넌트의 hooks 배열에서 자신의 hookIndex 위치를 클로저로 캡처한다.
- * 3. 최초 렌더링 시에만 initialValue(또는 initialValue())로 초기값을 설정한다. 
+ * 3. 최초 렌더링 시에만 initialValue(또는 initialValue())로 초기값을 설정한다.
  * 4. setState가 호출되면 새 값을 계산하고, Object.is 비교를 거쳐 다를 때만
- *    comp.hooks[index]를 갱신하고 comp.update()를 호출해 반응형 갱신을 트리거한다. 
+ *    comp.hooks[index]를 갱신하고 comp.update()를 호출해 반응형 갱신을 트리거한다.
  *
  * @template T
  * @param {T | (() => T)} initialValue
@@ -39,7 +39,7 @@ export function useState(initialValue) {
     // 2. 함수형 업데이트 방식
     const nextValue = typeof nextAction === 'function' ? nextAction(prevValue) : nextAction;
 
-    // Object.is로 변경여부 확인 
+    // Object.is로 변경여부 확인
     // 값이 같으면 불필요한 렌더링(update) 생략
     if (Object.is(prevValue, nextValue)) {
       return;
@@ -52,4 +52,3 @@ export function useState(initialValue) {
 
   return [comp.hooks[index], setState];
 }
-

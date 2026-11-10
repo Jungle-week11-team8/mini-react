@@ -28,4 +28,3 @@ export function createDom(vnode) {
   }
   return el;
 }
-

@@ -9,7 +9,7 @@ import { areDepsEqual } from './areDepsEqual.js';
  *    컴포넌트의 pendingEffects 큐에 예약한다.
  * 2. 실제 DOM에 화면이 모두 반영(Commit)된 직후 flushEffects에 의해 실행된다.
  * 3. 다음 effect가 실행되기 직전에 이전 cleanup 함수를 먼저 호출한다.  
- * 4. deps가 변경되지 않은 경우 콜백과 cleanup 모두 실행되지 않는다. 
+ * 4. deps가 변경되지 않은 경우 콜백과 cleanup 모두 실행되지 않는다.
  *
  * @param {() => (void | (() => void))} callback - 실행할 부수 효과 함수
  * @param {any[]} [deps] - 의존성 배열 (생략 시 매 렌더마다 실행, []는 마운트 시 1회만)
@@ -45,4 +45,3 @@ export function useEffect(callback, deps) {
     });
   }
 }
-

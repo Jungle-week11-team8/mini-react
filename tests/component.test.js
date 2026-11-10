@@ -21,11 +21,7 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
 
   it('mount()는 컴포넌트를 렌더링하여 컨테이너에 실제 DOM을 삽입한다', () => {
     const container = createContainer();
-    const App = (props) =>
-      h('div', { id: 'root' },
-        h('h1', {}, props.title),
-        h('p', {}, '내용')
-      );
+    const App = (props) => h('div', { id: 'root' }, h('h1', {}, props.title), h('p', {}, '내용'));
 
     const comp = new FunctionComponent(App, { title: '타이틀' }, container);
     comp.mount();
@@ -45,10 +41,7 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
   it('update()는 새 VNode를 diff/patch하여 변경된 부분만 실제 DOM에 반영한다', () => {
     const container = createContainer();
     const App = (props) =>
-      h('div', { id: 'app' },
-        h('h1', {}, props.title),
-        h('p', {}, '고정된 내용')
-      );
+      h('div', { id: 'app' }, h('h1', {}, props.title), h('p', {}, '고정된 내용'));
 
     const comp = new FunctionComponent(App, { title: '첫 번째 제목' }, container);
     comp.mount();
@@ -98,13 +91,14 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
     const container = createContainer();
 
     // 자식 컴포넌트: 순수 함수
-    const TodoItem = ({ text, done }) =>
-      h('li', { class: done ? 'done' : 'pending' }, text);
+    const TodoItem = ({ text, done }) => h('li', { class: done ? 'done' : 'pending' }, text);
 
     // 루트 컴포넌트: 자식을 직접 호출하여 VNode 트리를 구성
     const TodoList = ({ todos }) =>
-      h('ul', {},
-        todos.map((todo) => TodoItem(todo))
+      h(
+        'ul',
+        {},
+        todos.map((todo) => TodoItem(todo)),
       );
 
     const comp = new FunctionComponent(
@@ -115,23 +109,20 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
           { text: '할 일 2', done: true },
         ],
       },
-      container
+      container,
     );
 
     comp.mount();
 
     expect(container.innerHTML).toBe(
-      '<ul><li class="pending">할 일 1</li><li class="done">할 일 2</li></ul>'
+      '<ul><li class="pending">할 일 1</li><li class="done">할 일 2</li></ul>',
     );
   });
 
   it('변경 사항이 없으면 기존 DOM 노드를 유지한다', () => {
     const container = createContainer();
 
-    const App = () =>
-      h('div', { id: 'app' },
-        h('p', {}, '고정된 내용')
-      );
+    const App = () => h('div', { id: 'app' }, h('p', {}, '고정된 내용'));
 
     const comp = new FunctionComponent(App, {}, container);
     comp.mount();
@@ -143,9 +134,7 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
 
     expect(container.firstChild).toBe(rootEl);
     expect(rootEl.firstChild).toBe(pEl);
-    expect(container.innerHTML).toBe(
-      '<div id="app"><p>고정된 내용</p></div>'
-    );
+    expect(container.innerHTML).toBe('<div id="app"><p>고정된 내용</p></div>');
   });
 
   it('Attribute를 추가, 변경, 삭제한다', () => {
@@ -153,32 +142,40 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
 
     const App = ({ mode }) => {
       if (mode === 'initial') {
-        return h('button', {
-          id: 'old-btn',
-          class: 'inactive',
-          title: '비활성화'
-        }, '버튼');
+        return h(
+          'button',
+          {
+            id: 'old-btn',
+            class: 'inactive',
+            title: '비활성화',
+          },
+          '버튼',
+        );
       }
 
       if (mode === 'update') {
-        return h('button', {
-          id: 'new-btn',
-          class: 'active',
-          title: '활성화'
-        }, '버튼');
+        return h(
+          'button',
+          {
+            id: 'new-btn',
+            class: 'active',
+            title: '활성화',
+          },
+          '버튼',
+        );
       }
 
-      return h('button', {
-        id: 'new-btn',
-        class: 'active'
-      }, '버튼');
+      return h(
+        'button',
+        {
+          id: 'new-btn',
+          class: 'active',
+        },
+        '버튼',
+      );
     };
 
-    const comp = new FunctionComponent(
-      App,
-      { mode: 'initial' },
-      container
-    );
+    const comp = new FunctionComponent(App, { mode: 'initial' }, container);
 
     comp.mount();
 
@@ -205,10 +202,7 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
     const container = createContainer();
 
     const App = ({ show }) =>
-      h('ul', {},
-        h('li', {}, '사과'),
-        ...(show ? [h('li', {}, '바나나')] : [])
-      );
+      h('ul', {}, h('li', {}, '사과'), ...(show ? [h('li', {}, '바나나')] : []));
 
     const comp = new FunctionComponent(App, { show: false }, container);
     comp.mount();
@@ -237,15 +231,9 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
     const container = createContainer();
 
     const App = ({ useElement }) =>
-      useElement
-        ? h('div', {}, h('span', {}, '안녕하세요'))
-        : h('div', {}, '안녕하세요');
+      useElement ? h('div', {}, h('span', {}, '안녕하세요')) : h('div', {}, '안녕하세요');
 
-    const comp = new FunctionComponent(
-      App,
-      { useElement: true },
-      container
-    );
+    const comp = new FunctionComponent(App, { useElement: true }, container);
 
     comp.mount();
 
@@ -273,13 +261,14 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
     const container = createContainer();
 
     const App = ({ price }) =>
-      h('div', { class: 'product' },
-        h('section', {},
-          h('article', {},
-            h('span', {}, '상품명: 사과'),
-            h('strong', {}, `${price}원`)
-          )
-        )
+      h(
+        'div',
+        { class: 'product' },
+        h(
+          'section',
+          {},
+          h('article', {}, h('span', {}, '상품명: 사과'), h('strong', {}, `${price}원`)),
+        ),
       );
 
     const comp = new FunctionComponent(App, { price: 3000 }, container);
@@ -318,11 +307,7 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
       return h('div', {}, '정상 렌더링');
     };
 
-    const comp = new FunctionComponent(
-      App,
-      { shouldThrow: false },
-      container
-    );
+    const comp = new FunctionComponent(App, { shouldThrow: false }, container);
 
     comp.mount();
 
@@ -351,14 +336,10 @@ describe('Phase 2 — Step 1: FunctionComponent (컴포넌트 렌더링 & 파이
 
     expect(container.children.length).toBe(1);
 
-    expect(() => comp.mount()).toThrow(
-      'FunctionComponent: 이미 마운트된 컴포넌트입니다.'
-    );
+    expect(() => comp.mount()).toThrow('FunctionComponent: 이미 마운트된 컴포넌트입니다.');
 
     // 중복 mount로 기존 DOM이 영향을 받지 않았는지도 확인
     expect(container.children.length).toBe(1);
     expect(container.firstChild.textContent).toBe('Hello');
   });
-
 });
-

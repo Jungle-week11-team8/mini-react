@@ -11,7 +11,7 @@ export function h(tag, attrs = {}, ...rawChildren) {
   const children = [];
 
   function normalize(child) {
-    if (child == null || child === false || child === true) {
+    if (child === null || child === false || child === true) {
       // null, undefined, boolean은 렌더링하지 않음
       return;
     }
@@ -49,4 +49,3 @@ export function h(tag, attrs = {}, ...rawChildren) {
     children,
   };
 }
-

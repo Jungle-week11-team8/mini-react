@@ -1,8 +1,7 @@
-import { createDom } from '../vdom/createDom.js';
-import { diff } from '../diff/diff.js';
-import { applyPatches } from '../patch/applyPatches.js';
-import { setCurrentComponent } from '../hooks/current.js';
-
+import { createDom } from '../vdom/index.js';
+import { diff } from '../diff/index.js';
+import { applyPatches } from '../patch/index.js';
+import { setCurrentComponent } from '../hooks/index.js';
 /**
  * 함수형 컴포넌트를 감싸서 상태(hooks)와 생명주기(mount, update)를 관리하는 클래스.
  *
@@ -33,7 +32,7 @@ export class FunctionComponent {
     this.hooks = []; // 각 Hook의 상태값을 저장하는 배열
     this.hookIndex = 0; // 현재 실행 중인 Hook이 사용할 배열의 위치
 
-    // 다음 화면과 비교할 수 있도록 이전 화면의 Virtual DOM을 기억 
+    // 다음 화면과 비교할 수 있도록 이전 화면의 Virtual DOM을 기억
     this.prevVdom = null;
 
     // useEffect에서 사용할 실행 대기 effect 큐
@@ -89,7 +88,7 @@ export class FunctionComponent {
    * 1. render(): 컴포넌트 함수를 다시 실행해 새 VNode를 얻는다.
    * 2. diff(): 이전 VNode(prevVdom)와 새 VNode를 비교해 patches를 생성한다.
    * 3. applyPatches(): 변경된 부분만 실제 DOM에 반영한다.
-   * 4. prevVdom을 새 VNode로 교체한다 
+   * 4. prevVdom을 새 VNode로 교체한다
    * 5. 등록된 Effect들을 실행한다.
    */
   update() {
@@ -107,7 +106,7 @@ export class FunctionComponent {
   }
 
   /**
-   * 렌더링 도중 useEffect로 예약된 부수 효과들을 실행한다. 
+   * 렌더링 도중 useEffect로 예약된 부수 효과들을 실행한다.
    */
   flushEffects() {
     if (this.pendingEffects.length === 0) return;
@@ -120,4 +119,3 @@ export class FunctionComponent {
     }
   }
 }
-
