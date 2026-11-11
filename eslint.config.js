@@ -13,7 +13,7 @@ const moduleBoundary = {
 };
 
 export default defineConfig([
-  globalIgnores(['node_modules/', 'coverage/', 'dist/']),
+  globalIgnores(['node_modules/', '.venv/', 'coverage/', 'dist/']),
   { files: ['**/*.js'], plugins: { js }, extends: ['js/recommended'] },
   {
     files: ['**/*.js'],

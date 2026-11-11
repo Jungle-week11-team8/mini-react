@@ -3,265 +3,150 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>mini-react Phase 1</title>
-    <style>
-      /* Mona12는 12px 격자 픽셀체라서 글자 크기를 12의 배수로만 쓴다. 그래야 픽셀이 번지지 않는다. */
-      @font-face {
-        font-family: 'Mona12';
-        src: url('./fonts/Mona12-Regular.woff2') format('woff2');
-        font-weight: 400;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'Mona12';
-        src: url('./fonts/Mona12-Bold.woff2') format('woff2');
-        font-weight: 700;
-        font-display: swap;
-      }
-
-      :root {
-        --paper: #f3efe6;
-        --card: #fbf9f4;
-        --ink: #2b2925;
-        --muted: #6e675c;
-        --rule: #a9a297;
-        --error: #b3261e;
-        --hatch: repeating-linear-gradient(
-          -45deg,
-          rgba(43, 41, 37, 0.18) 0 3px,
-          transparent 3px 8px
-        );
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        padding: 24px 48px 48px;
-        background: var(--paper);
-        color: var(--ink);
-        font-family: 'Mona12', monospace;
-        font-size: 24px;
-        -webkit-font-smoothing: none;
-      }
-
-      h1 {
-        margin: 0 auto 24px;
-        width: fit-content;
-        font-size: 48px;
-        font-weight: 700;
-        padding-bottom: 8px;
-        border-bottom: 4px solid var(--ink);
-      }
-
-      /* 섹션 제목: 제목 — 점선 — 체크무늬 */
-      .rule {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 24px 0 12px;
-        font-size: 24px;
-        font-weight: 700;
-      }
-      .rule::after {
-        content: '';
-        flex: 1;
-        border-top: 2px dashed var(--rule);
-      }
-      .rule::before {
-        content: '';
-        order: 2;
-        width: 24px;
-        height: 24px;
-        background: repeating-conic-gradient(var(--rule) 0 25%, transparent 0 50%) 0 0 / 8px 8px;
-      }
-
-      .areas {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 36px;
-      }
-
-      .area-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin: 0 0 12px;
-        font-size: 24px;
-        font-weight: 700;
-      }
-      .area-head small {
-        font-size: 12px;
-        font-weight: 400;
-        color: var(--muted);
-      }
-
-      /* 실제 영역: 떠 있는 판 (Raised) */
-      .area {
-        min-height: 288px;
-        padding: 24px 36px;
-        border: 3px solid var(--ink);
-        border-radius: 4px;
-        background: var(--card);
-        box-shadow: 6px 6px 0 var(--ink);
-        font-size: 36px;
-      }
-      .area ul {
-        margin: 0;
-        padding-left: 36px;
-        list-style: square;
-      }
-
-      /* 테스트 영역: 해칭 테두리 안으로 들어간 입력창 (Inset) */
-      .inset {
-        padding: 8px;
-        border: 3px solid var(--ink);
-        border-radius: 4px;
-        background: var(--hatch);
-      }
-      textarea {
-        display: block;
-        width: 100%;
-        min-height: 264px;
-        padding: 12px 18px;
-        border: 3px solid var(--ink);
-        border-radius: 2px;
-        background: var(--card);
-        box-shadow: inset 4px 4px 0 rgba(43, 41, 37, 0.18);
-        color: var(--ink);
-        font-family: 'Mona12', monospace;
-        font-size: 24px;
-        line-height: 36px;
-        resize: vertical;
-        outline: none;
-      }
-      textarea:focus {
-        box-shadow:
-          inset 4px 4px 0 rgba(43, 41, 37, 0.18),
-          0 0 0 3px var(--paper),
-          0 0 0 6px var(--ink);
-      }
-
-      .controls {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 12px;
-      }
-
-      button {
-        min-height: 48px;
-        padding: 0 24px;
-        border: 3px solid var(--ink);
-        border-radius: 4px;
-        background: var(--card);
-        box-shadow: 4px 4px 0 var(--ink);
-        color: var(--ink);
-        font: inherit;
-        font-size: 24px;
-        cursor: pointer;
-      }
-      /* 누르는 동안은 그림자만큼 내려가서 눌린 판(Pressed)이 된다 */
-      button:active:not(:disabled) {
-        transform: translate(4px, 4px);
-        box-shadow: inset 3px 3px 0 rgba(43, 41, 37, 0.25);
-        background: var(--hatch), #ece6da;
-      }
-      button:focus-visible {
-        outline: 3px dashed var(--ink);
-        outline-offset: 4px;
-      }
-      button:disabled {
-        border-color: #b3ab9e;
-        background: var(--paper);
-        box-shadow: 3px 3px 0 #cfc8bb;
-        color: #8f887c;
-        cursor: not-allowed;
-      }
-      #patch {
-        font-weight: 700;
-        box-shadow: 5px 5px 0 var(--ink);
-      }
-
-      #status {
-        margin-left: 12px;
-        padding: 0 12px;
-        background: var(--ink);
-        color: var(--paper);
-        font-size: 24px;
-        line-height: 36px;
-      }
-      #error {
-        color: var(--error);
-        font-size: 24px;
-      }
-
-      /* 마지막 patch: 알림 카드처럼 */
-      pre {
-        margin: 0;
-        padding: 12px 18px;
-        border: 3px solid var(--ink);
-        border-radius: 4px;
-        background: var(--card);
-        box-shadow: 4px 4px 0 var(--ink);
-        font-family: 'Mona12', monospace;
-        font-size: 24px;
-        line-height: 36px;
-        /* patch가 많아도 페이지가 끝없이 길어지지 않게 */
-        max-height: 432px;
-        overflow: auto;
-      }
-
-      @media (max-width: 900px) {
-        body {
-          padding: 24px 16px;
-        }
-        .areas {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
-    </style>
+    <meta
+      name="description"
+      content="HTML을 직접 편집하며 Virtual DOM, Diff, Patch와 상태 이력을 확인하는 mini-react 실험실"
+    />
+    <title>Phase 1 · mini-react 실험실</title>
+    <link rel="stylesheet" href="../style.css" />
   </head>
   <body>
-    <h1>MINI-REACT · PHASE 1</h1>
-
-    <h2 class="rule">WORKSPACE</h2>
-    <div class="areas">
-      <section>
-        <h3 class="area-head">실제 영역 <small>REAL DOM</small></h3>
-        <div id="real" class="area">
-          <ul id="list">
-            <li>A</li>
-            <li>B</li>
-            <li>C</li>
-          </ul>
+    <a class="skip-link" href="#workspace">실험 영역으로 이동</a>
+    <header class="site-header">
+      <a class="brand" href="../index.html"
+        ><span class="brand-icon" aria-hidden="true">m.</span> mini-react<span class="brand-sub"
+          >LAB</span
+        ></a
+      >
+      <nav aria-label="데모 선택">
+        <a href="./" aria-current="page"><span>01</span> DOM &amp; Patch</a>
+        <a href="../phase2.html"><span>02</span> State &amp; Hooks</a>
+      </nav>
+      <span class="header-note">VANILLA JS / BUILT FROM SCRATCH</span>
+    </header>
+    <main>
+      <section class="page-intro">
+        <div>
+          <p class="eyebrow">EXPERIMENT 01 · VIRTUAL DOM</p>
+          <h1>바뀐 부분만, 화면에.</h1>
+          <p class="lead">
+            HTML을 수정하고 Patch를 눌러 보세요. 작은 변경이 실제 화면에 도착하는 과정을 확인합니다.
+          </p>
+        </div>
+        <div class="flow" aria-label="동작 순서">
+          <span>DOM</span><b aria-hidden="true">→</b><span>DIFF</span><b aria-hidden="true">→</b
+          ><span class="flow-active">PATCH</span>
         </div>
       </section>
-      <section>
-        <h3 class="area-head">
-          <label for="editor">테스트 영역</label>
-          <small>EDIT HTML</small>
-        </h3>
-        <div class="inset">
-          <textarea id="editor" spellcheck="false"></textarea>
+      <div class="section-heading">
+        <h2 id="workspace" tabindex="-1">01 / 편집 &amp; 반영</h2>
+        <span>편집한 내용은 Patch를 누르면 적용됩니다</span>
+      </div>
+      <div class="workspace-grid">
+        <section class="panel real-panel" aria-labelledby="real-title">
+          <header class="panel-heading">
+            <h3 id="real-title"><span class="dot green"></span>실제 영역</h3>
+            <span class="tag">REAL DOM</span>
+          </header>
+          <div class="canvas-caption">현재 적용된 화면</div>
+          <!-- prettier-ignore -->
+          <div id="real" class="sample-canvas"><ul id="list">
+  <li>A</li>
+  <li>B</li>
+  <li>C</li>
+</ul></div>
+          <footer class="panel-note">Patch 또는 이력 이동으로 화면이 갱신됩니다.</footer>
+        </section>
+        <section class="panel editor-panel" aria-labelledby="editor-title">
+          <header class="panel-heading">
+            <h3 id="editor-title">
+              <span class="dot orange"></span><label for="editor">테스트 영역</label>
+            </h3>
+            <span class="tag">EDIT HTML</span>
+          </header>
+          <textarea id="editor" spellcheck="false" aria-describedby="editor-help error"></textarea>
+          <div class="preview-heading">
+            <span>편집 미리보기</span><span id="draft-status">적용된 상태</span>
+          </div>
+          <div
+            id="preview"
+            class="sample-canvas preview-canvas"
+            aria-label="테스트 영역 미리보기"
+          ></div>
+          <p id="editor-help" class="panel-note">
+            최상위 노드 하나를 유지하세요. 내부 공백과 주석도 보존됩니다.
+          </p>
+        </section>
+      </div>
+      <div class="action-bar">
+        <button id="patch" class="button primary" type="button">
+          변경 적용 <span>Patch ↗</span>
+        </button>
+        <div class="history-controls" role="group" aria-label="상태 이력 이동">
+          <button id="back" class="button" type="button">← 뒤로가기</button>
+          <span id="status" class="history-status" aria-live="polite">history 1 / 1</span>
+          <button id="forward" class="button" type="button">앞으로가기 →</button>
         </div>
-      </section>
-    </div>
-
-    <h2 class="rule">CONTROLS</h2>
-    <div class="controls">
-      <button id="patch">Patch</button>
-      <button id="back">← 뒤로가기</button>
-      <button id="forward">앞으로가기 →</button>
-      <span id="status"></span>
-      <span id="error" role="alert"></span>
-    </div>
-
-    <h2 class="rule">마지막으로 적용한 PATCH</h2>
-    <pre id="patches">[]</pre>
-
+      </div>
+      <p id="error" class="error-message" role="alert"></p>
+      <p id="feedback" class="feedback" role="status">
+        첫 상태를 준비했습니다. 테스트 영역에서 HTML을 수정해 보세요.
+      </p>
+      <div class="bottom-grid">
+        <section class="panel log-panel" aria-labelledby="patch-title">
+          <header class="panel-heading">
+            <h2 id="patch-title">02 / 마지막 Patch</h2>
+            <span class="tag">PATCH LOG</span>
+          </header>
+          <pre id="patches" tabindex="0" aria-label="마지막으로 적용한 Patch 목록">[]</pre>
+          <p class="panel-note">
+            변경이 없으면 빈 배열이 표시됩니다. 동일한 상태도 이력에 저장됩니다.
+          </p>
+        </section>
+        <section class="guide" aria-labelledby="guide-title">
+          <p class="eyebrow">TRY IT YOURSELF</p>
+          <h2 id="guide-title">이렇게 확인해 보세요</h2>
+          <ol class="test-steps">
+            <li>
+              <span>01</span>
+              <div>
+                <strong>A를 다른 글자로 수정</strong>
+                <p>Patch 후 SET_DATA와 실제 영역의 텍스트를 확인하세요.</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <strong>속성·태그·자식 요소 변경</strong>
+                <p>class 추가, ul → ol 교체, 마지막 li 추가·삭제를 각각 적용해 보세요.</p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <strong>뒤로 갔다가 새로운 내용 적용</strong>
+                <p>양쪽 영역이 복원되고, 새 변경 이후의 이전 기록은 사라집니다.</p>
+              </div>
+            </li>
+          </ol>
+          <details>
+            <summary>공백·오류·부분 갱신도 확인하기</summary>
+            <p>
+              주석과 줄바꿈을 넣고 옆 요소를 수정해 보세요. 입력을 비우거나 최상위 노드를 둘로
+              만들면 오류가 표시되고 실제 화면과 이력은 유지되어야 합니다.
+            </p>
+            <p>
+              DevTools에서 변경하지 않을 요소를 변수에 저장한 후 다른 요소만 수정하세요. 저장한
+              참조와 현재 요소가 같으면 기존 노드가 유지된 것입니다.
+            </p>
+          </details>
+        </section>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <span>mini-react / 크래프톤 정글 WEEK 11–12</span
+      ><a href="../phase2.html">다음 실험 · State &amp; Hooks →</a>
+    </footer>
     <script type="module" src="./main.js"></script>
   </body>
 </html>

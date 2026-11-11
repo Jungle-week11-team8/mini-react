@@ -1,6 +1,7 @@
 import { domToVNode, diff, applyPatches } from '../../src/index.js';
 
 const real = document.getElementById('real');
+const preview = document.getElementById('preview');
 const editor = document.getElementById('editor');
 const patchButton = document.getElementById('patch');
 const backButton = document.getElementById('back');
@@ -8,65 +9,112 @@ const forwardButton = document.getElementById('forward');
 const status = document.getElementById('status');
 const error = document.getElementById('error');
 const patchLog = document.getElementById('patches');
+const draftStatus = document.getElementById('draft-status');
+const feedback = document.getElementById('feedback');
 
-// 루트는 childNodes[0]이므로, HTML 들여쓰기로 생긴 앞뒤 공백 text를 걷어 낸다
-real.innerHTML = real.innerHTML.trim();
-
-// VNode는 순수 데이터라서 스냅샷으로 그대로 쌓아 둘 수 있다
-const history = [domToVNode(real.childNodes[0])];
+// 최초 VNode로 복원해 초기 표시도 patch의 렌더링 경로를 검증한다.
+const history = [domToVNode(real.firstChild)];
 let current = 0;
+syncPreview(history[0]);
+editor.value = preview.innerHTML;
+renderControls();
 
-editor.value = real.innerHTML;
-render();
+editor.addEventListener('input', () => {
+  const next = readEditor();
+  if (!next) {
+    showText(draftStatus, '입력을 확인해 주세요');
+    return;
+  }
+  syncPreview(next);
+  showText(draftStatus, '편집 내용 미적용');
+});
 
 patchButton.addEventListener('click', () => {
   const next = readEditor();
   if (!next) return;
-  moveTo(next);
-  // 뒤로 간 상태에서 새로 patch하면 앞쪽 기록은 의미가 없어지므로 버린다
+  const patches = moveTo(next);
+  // 과거 상태에서 분기하면 예전의 이후 기록으로 진행하지 않는다.
   history.splice(current + 1, Infinity, next);
   current = history.length - 1;
-  render();
+  renderControls();
+  showText(
+    feedback,
+    patches.length
+      ? '변경을 적용하고 새 상태를 기록했습니다.'
+      : 'DOM 변경이 없습니다. 같은 상태를 이력에 기록했습니다.',
+  );
 });
 
-backButton.addEventListener('click', () => {
-  current -= 1;
-  moveTo(history[current]);
-  render();
-});
+backButton.addEventListener('click', () => navigate(-1));
+forwardButton.addEventListener('click', () => navigate(1));
 
-forwardButton.addEventListener('click', () => {
-  current += 1;
-  moveTo(history[current]);
-  render();
-});
-
-/**
- * 실제 영역을 target VNode와 같아지도록 patch한다.
- * old는 history가 아니라 실제 DOM을 다시 읽는다. 누가 DOM을 바꿨어도 path가 어긋나지 않는다.
- * @param {import('../../src/vdom/types.js').VNode} target
- */
-function moveTo(target) {
-  const patches = diff(domToVNode(real.childNodes[0]), target);
-  applyPatches(real, patches);
-  editor.value = real.innerHTML;
-  patchLog.textContent = JSON.stringify(patches, null, 2);
+function navigate(direction) {
+  const target = current + direction;
+  if (target < 0 || target >= history.length) return;
+  moveTo(history[target]);
+  current = target;
+  renderControls();
+  showText(feedback, '선택한 상태를 실제 영역과 테스트 영역에 복원했습니다.');
 }
 
-/** textarea의 HTML을 VNode로 만든다. 최상위 노드가 1개가 아니면 null. */
+function syncPreview(target) {
+  const patches = preview.firstChild
+    ? diff(domToVNode(preview.firstChild), target)
+    : [{ type: 'INSERT', parentPath: [], index: 0, node: target }];
+  applyPatches(preview, patches);
+}
+
+function moveTo(target) {
+  // 실제 DOM을 다시 읽어 사용자가 직접 변경했어도 경로가 어긋나지 않게 한다.
+  const patches = diff(domToVNode(real.firstChild), target);
+  applyPatches(real, patches);
+  syncPreview(target);
+  editor.value = real.innerHTML;
+  showText(patchLog, JSON.stringify(patches, null, 2));
+  showText(error, '');
+  showText(draftStatus, '적용된 상태');
+  return patches;
+}
+
 function readEditor() {
-  const holder = document.createElement('div');
-  holder.innerHTML = editor.value.trim();
-  if (holder.childNodes.length !== 1) {
-    error.textContent = `최상위 노드는 1개여야 합니다. (지금 ${holder.childNodes.length}개)`;
+  // 파싱은 화면 밖 template에서 하고, 실제 화면 반영은 applyPatches만 담당한다.
+  const template = document.createElement('template');
+  template.innerHTML = editor.value.trim();
+  if (template.content.childNodes.length !== 1) {
+    showText(
+      error,
+      `최상위 노드는 1개여야 합니다. (지금 ${template.content.childNodes.length}개) 내용을 하나의 요소로 감싸 주세요.`,
+    );
     return null;
   }
-  error.textContent = '';
-  return domToVNode(holder.childNodes[0]);
+  showText(error, '');
+  return domToVNode(template.content.firstChild);
 }
 
-function render() {
-  backButton.disabled = current === 0;
-  forwardButton.disabled = current === history.length - 1;
-  status.textContent = `history ${current + 1} / ${history.length}`;
+function showText(container, value) {
+  const node = { type: 'text', text: value };
+  applyPatches(
+    container,
+    container.firstChild
+      ? diff(domToVNode(container.firstChild), node)
+      : [{ type: 'INSERT', parentPath: [], index: 0, node }],
+  );
+}
+
+function setDisabled(button, disabled) {
+  const index = [...button.parentNode.childNodes].indexOf(button);
+  applyPatches(button.parentNode, [
+    {
+      type: 'UPDATE_ATTRS',
+      path: [index],
+      set: disabled ? { disabled: '' } : {},
+      remove: disabled ? [] : ['disabled'],
+    },
+  ]);
+}
+
+function renderControls() {
+  setDisabled(backButton, current === 0);
+  setDisabled(forwardButton, current === history.length - 1);
+  showText(status, `history ${current + 1} / ${history.length}`);
 }

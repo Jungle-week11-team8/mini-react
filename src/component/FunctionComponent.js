@@ -2,10 +2,13 @@ import { diff } from '../diff/index.js';
 import { applyPatches } from '../patch/index.js';
 
 // 훅은 인자로 컴포넌트를 받지 않으므로, 지금 렌더 중인 컴포넌트를 여기서 알려 준다
+// 훅이 어느 컴포넌트의 상태를 읽고 써야 하는지, 렌더러가 미리 표시해 둔다_
 /** @type {FunctionComponent | null} */
 let currentComponent = null;
 
 // effect 안 setState가 끝없이 렌더를 부르는 실수를 에러로 드러내기 위한 상한
+// 최대 50번 렌더를 부를 수 있음. 상한을 안 두면 어떤 문제가 발생하지?
+// => 상한이 없으면 effect가 자기 자신을 다시 실행시키는 렌더를 계속 예약해서 탭이 멈춘 것처럼 보일 수 있음
 const MAX_EFFECT_RENDERS = 50;
 
 /**
@@ -45,6 +48,7 @@ export class FunctionComponent {
     this.effectRenderCount = 0;
   }
 
+  // 화면에 무엇을 그릴지 계산
   /**
    * 컴포넌트 함수를 실행해 VNode를 만든다.
    * @returns {import('../vdom/types.js').VNode}

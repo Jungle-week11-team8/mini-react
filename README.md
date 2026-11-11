@@ -21,8 +21,15 @@ Vanilla HTML / CSS / JavaScript (React, Vue 등 프레임워크 사용 금지)
 
 ## 실행과 검증
 
-Node 24에서 `npm ci` 후 `npm run dev`를 실행하고 `/phase1/`을 엽니다.
+Node 24에서 `npm ci` 후 `npm run dev`를 실행하고 터미널의 Local 주소를 엽니다.
+시작 화면(`/`)에서 `/phase1/` 또는 `/phase2.html`로 이동할 수 있습니다.
 `npm test`, `npm run lint`, `npm run format:check`로 검증합니다.
+
+- Phase 1: HTML 편집과 VNode 미리보기, Patch 목록, 뒤로·앞으로 이동, 이력 분기 및 입력 오류 확인.
+- Phase 2: 점수 증가·일괄 갱신·동일 값 설정·초기화, 설명 접기/펴기로 독립 상태 변경,
+  memo 재사용과 effect/cleanup 순서 확인. 상태와 훅은 루트에 두고 자식은 props만 받습니다.
+- 각 화면의 확인 안내를 따라 수동 테스트할 수 있으며, `tests/demo-phase*.test.js`는
+  실제 데모 HTML과 스크립트를 사용해 편집·이력·상태 갱신 흐름을 검증합니다.
 
 ## Phase 1 통합
 
