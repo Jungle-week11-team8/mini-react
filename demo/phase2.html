@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mini-react · Phase 2 검증</title>
+    <style>
+      body {
+        max-width: 760px;
+        margin: 48px auto;
+        padding: 0 24px;
+        font-family: system-ui, sans-serif;
+        line-height: 1.6;
+        color: #17202a;
+        background: #f7f8fa;
+      }
+      #root,
+      section {
+        background: white;
+        border: 1px solid #ccd3dc;
+        padding: 20px;
+        margin: 16px 0;
+        border-radius: 12px;
+      }
+      button {
+        font: inherit;
+        padding: 10px 16px;
+        margin: 4px;
+        cursor: pointer;
+      }
+      output {
+        display: block;
+        white-space: pre-wrap;
+      }
+      #events {
+        max-height: 240px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 2 · 상태와 훅</h1>
+    <p>버튼으로 상태를 바꾸고, 화면을 그린 횟수와 effect 실행 순서를 확인하세요.</p>
+    <div id="root"></div>
+    <div role="group" aria-label="상태 변경">
+      <button id="increment" type="button">1 증가</button>
+      <button id="batch" type="button">연속 3번 증가</button>
+      <button id="same" type="button">같은 값 설정</button>
+      <button id="reset" type="button">0으로 초기화</button>
+    </div>
+    <section aria-label="갱신 확인">
+      <h2>갱신 확인</h2>
+      <output id="result" aria-live="polite">버튼을 눌러 확인하세요.</output>
+    </section>
+    <section aria-label="effect 실행 기록">
+      <h2>effect 실행 기록</h2>
+      <ol id="events"></ol>
+    </section>
+    <script type="module" src="./phase2.js"></script>
+  </body>
+</html>

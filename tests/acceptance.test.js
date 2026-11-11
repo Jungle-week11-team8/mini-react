@@ -19,8 +19,7 @@ describe('공개 API 계약', () => {
 });
 
 // 인수 테스트: Phase 1 완료 기준이다. (docs/vnode-spec.md 6절)
-// domToVNode · diff · applyPatches가 모두 구현되면 `.skip`을 지운다.
-describe.skip('인수 테스트: diff 후 patch하면 after와 같은 DOM이 된다', () => {
+describe('인수 테스트: diff 후 patch하면 after와 같은 DOM이 된다', () => {
   it.each(scenarios)('$name', ({ before, after }) => {
     const container = containerOf(before);
     const oldVNode = domToVNode(container.childNodes[0]);
