@@ -35,6 +35,9 @@
 - `attrs`가 없어도 `{}`, `children`이 없어도 `[]`로 둔다. `undefined`를 쓰지 않는다.
 - `key`는 element의 `key` 속성이 있을 때만 넣는다. (MOVE 확장용, Phase 1에서는 선택)
 - VNode에는 함수나 DOM 참조를 넣지 않는다. `structuredClone`과 `JSON.stringify`가 모두 가능해야 한다.
+  - 예외: `h()`가 만드는 `events` 필드(`Record<string, Function>`)는 이벤트 핸들러 함수를 담는다.
+    `events`는 diff 대상이 아니며, 렌더가 DOM에 반영된 뒤 `component/bindEvents.js`가 같은 위치의 요소에 연결한다.
+    `domToVNode`는 `events`를 만들지 않으므로 Phase 1 State History의 VNode는 그대로 복제할 수 있다.
 
 ### 공백 텍스트 노드: 그대로 유지한다
 

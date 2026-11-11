@@ -1,5 +1,6 @@
 import { diff } from '../diff/index.js';
 import { applyPatches } from '../patch/index.js';
+import { bindEvents } from './bindEvents.js';
 
 // 훅은 인자로 컴포넌트를 받지 않으므로, 지금 렌더 중인 컴포넌트를 여기서 알려 준다
 /** @type {FunctionComponent | null} */
@@ -73,6 +74,7 @@ export class FunctionComponent {
     }
     const vnode = this.render();
     applyPatches(container, [{ type: 'INSERT', parentPath: [], index: 0, node: vnode }]);
+    bindEvents(container.firstChild, vnode);
     this.container = container;
     this.vnode = vnode;
     this.isMounted = true;
@@ -91,6 +93,7 @@ export class FunctionComponent {
     }
     const nextVNode = this.render();
     applyPatches(this.container, diff(this.vnode, nextVNode));
+    bindEvents(this.container.firstChild, nextVNode);
     // 다음 update는 지금 화면과 비교해야 하므로 기준을 바꿔 둔다
     this.vnode = nextVNode;
     this.runEffects();
