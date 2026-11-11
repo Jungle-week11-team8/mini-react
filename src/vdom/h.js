@@ -1,3 +1,6 @@
+// JSX 이름과 실제 DOM 이벤트 이름이 다른 경우 (onDoubleClick -> dblclick)
+const EVENT_NAME_MAP = { doubleclick: 'dblclick' };
+
 /**
  * CamelCase 스타일 이름을 kebab-case로 변환 (예: fontSize -> font-size)
  * @param {string} str
@@ -74,7 +77,8 @@ export function h(tag, props = {}, ...rawChildren) {
 
     // 1. 이벤트 핸들러 분리 (AGENTS.md 규칙: attrs에 함수를 넣지 않는다)
     if (key.startsWith('on') && typeof value === 'function') {
-      const eventName = key.slice(2).toLowerCase();
+      const rawName = key.slice(2).toLowerCase();
+      const eventName = EVENT_NAME_MAP[rawName] ?? rawName;
       events[eventName] = value;
       hasEvents = true;
       continue;
