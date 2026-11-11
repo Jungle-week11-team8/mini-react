@@ -1,7 +1,7 @@
 // 타입 정의만 모아 둔 파일이다. 기준은 docs/vnode-spec.md다.
 
 /**
- * @typedef {{ type: 'element', tag: string, attrs: Record<string, string>, key?: string, children: VNode[] }} ElementVNode
+ * @typedef {{ type: 'element', tag: string, attrs: Record<string, string>, key?: string, events?: Record<string, Function>, children: VNode[] }} ElementVNode
  * @typedef {{ type: 'text', text: string }} TextVNode
  * @typedef {{ type: 'comment', text: string }} CommentVNode
  * @typedef {ElementVNode | TextVNode | CommentVNode} VNode

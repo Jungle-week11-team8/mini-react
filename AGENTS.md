@@ -63,6 +63,8 @@ docs/
 
 - `diff/`는 순수 함수다. `document`, `window`, 실제 DOM 노드에 접근하지 않는다.
 - 실제 DOM을 변경하는 코드는 `patch/`에만 둔다.
+  - 예외: 이벤트 연결(`component/bindEvents.js`)은 렌더 후 `component/`에서 DOM 요소의 `on<event>` 속성에 대입한다.
+    이벤트 버그는 `patch/`가 아니라 여기서 찾는다. `diff`·`applyPatches`만 직접 쓰면 이벤트는 연결되지 않는다.
 - `hooks/`는 `patch/`를 직접 호출하지 않는다. 리렌더는 `component/`를 거친다.
 - 다른 모듈의 내부 파일을 직접 import하지 않는다. 각 폴더의 `index.js`가 공개한 것만 쓴다.
 - 새 폴더나 새 최상위 모듈이 필요하면 만들기 전에 사람에게 묻는다.
@@ -112,7 +114,7 @@ type Patch =
 
 1. **VNode에는 함수를 넣지 않는다.** 함수는 `structuredClone`에서 에러가 나고 `JSON.stringify`에서는 사라져서 history 저장이 깨진다.
    - 컴포넌트는 diff하기 전에 실행해서 태그 VNode로 펼친다. `tag`에 함수를 허용하지 않는다.
-   - Phase 2에서 이벤트 핸들러가 필요하면 `attrs`에 섞지 않고 별도 필드(예: `events?: Record<string, Function>`)로 둔다. 이 필드를 추가하기 전에 사람에게 먼저 묻는다.
+   - 이벤트 핸들러는 `attrs`에 섞지 않고 `events?: Record<string, Function>` 필드에 둔다. 이 필드만 함수를 허용하며 직렬화 대상이 아니다.
 2. **공백만 있는 텍스트 노드를 버리는 경우**, `domToVNode`와 `applyPatches`의 path 해석이 같은 규칙을 써야 한다. 그렇지 않으면 인덱스가 어긋난다.
 3. **diff는 REMOVE·REPLACE·INSERT를 만든 노드의 하위 트리에 대해서는 patch를 더 만들지 않는다.**
 4. **`applyPatches` 적용 순서**: path 기반 patch는 앞쪽 형제를 지우면 뒤 형제의 인덱스가 밀린다. 그래서 아래 순서를 지킨다.
