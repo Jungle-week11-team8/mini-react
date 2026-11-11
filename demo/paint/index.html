@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mini-react · 픽셀 그림판</title>
+    <style>
+      :root {
+        --bg: #f7f8fa;
+        --surface: #ffffff;
+        --text: #17202a;
+        --muted: #5b6573;
+        --border: #ccd3dc;
+        --accent: #ef9f27;
+        --c0: #ffffff;
+        --c1: #d85a30;
+        --c2: #ef9f27;
+        --c3: #1d9e75;
+        --c4: #378add;
+        --c5: #7f77dd;
+        --c6: #d4537e;
+        --c7: #2c2c2a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        max-width: 860px;
+        margin: 40px auto;
+        padding: 0 16px;
+        font-family: system-ui, sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg);
+      }
+      h1 {
+        margin-bottom: 4px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      .lead {
+        color: var(--muted);
+        margin-top: 0;
+      }
+      #root,
+      .monitor {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      button {
+        font: inherit;
+        padding: 6px 12px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+      .palette {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .swatch {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+      }
+      .swatch[data-color='0'] {
+        background: repeating-conic-gradient(#d3d1c7 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+      }
+      .swatch[aria-pressed='true'] {
+        outline: 3px solid var(--text);
+        outline-offset: 2px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 200px;
+        gap: 16px;
+      }
+      .canvas {
+        display: grid;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        cursor: crosshair;
+        touch-action: none;
+        user-select: none;
+        aspect-ratio: 1;
+      }
+      .cell {
+        aspect-ratio: 1;
+      }
+      [data-color='0'] {
+        background: var(--c0);
+      }
+      [data-color='1'] {
+        background: var(--c1);
+      }
+      [data-color='2'] {
+        background: var(--c2);
+      }
+      [data-color='3'] {
+        background: var(--c3);
+      }
+      [data-color='4'] {
+        background: var(--c4);
+      }
+      [data-color='5'] {
+        background: var(--c5);
+      }
+      [data-color='6'] {
+        background: var(--c6);
+      }
+      [data-color='7'] {
+        background: var(--c7);
+      }
+      .stats {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .stats li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .chip {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+      }
+      .stats-empty {
+        color: var(--muted);
+        margin: 0;
+      }
+      .timeline {
+        margin-top: 16px;
+      }
+      .timeline-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .timeline-label {
+        margin-left: auto;
+        color: var(--muted);
+      }
+      .ticks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 12px;
+      }
+      .tick {
+        width: 14px;
+        height: 22px;
+        padding: 0;
+      }
+      .tick[aria-current='step'] {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .monitor dl {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin: 0;
+      }
+      .monitor dt {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .monitor dd {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      @media (max-width: 600px) {
+        .workspace,
+        .monitor dl {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>픽셀 그림판 + 타임머신</h1>
+    <p class="lead">
+      드래그로 칠하고, 뒤로·앞으로나 기록 눈금으로 시간을 되감아 보세요. 바뀐 칸만 주황색으로
+      깜빡입니다.
+    </p>
+    <div id="root"></div>
+    <section class="monitor" aria-label="mini-react 동작 관찰">
+      <dl>
+        <div>
+          <dt>방금 렌더의 실제 DOM 변경</dt>
+          <dd id="change-count" aria-live="polite">0</dd>
+        </div>
+        <div>
+          <dt>자동 저장 (useEffect)</dt>
+          <dd id="save-status">-</dd>
+        </div>
+        <div>
+          <dt>취소된 저장 예약 (cleanup)</dt>
+          <dd id="cancel-count">0</dd>
+        </div>
+      </dl>
+    </section>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
