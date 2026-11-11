@@ -21,8 +21,25 @@
 ## 환경
 
 - Node 24 LTS (`.nvmrc`), 패키지 매니저는 `npm` (`package-lock.json` 커밋)
-- 브라우저 코드는 ES Modules(`import` / `export`)로 작성하고, 빌드 없이 동작해야 한다.
-- 파일 확장자는 `.js`, 들여쓰기 2칸, LF, UTF-8
+- 브라우저 코드는 ES Modules(`import` / `export`)로 작성한다.
+- `src/`는 빌드 없이 동작해야 한다. `src/`에는 JSX를 쓰지 않는다.
+- 파일 확장자는 `.js`, 들여쓰기 2칸, LF, UTF-8. 단, `demo/` 안에서 JSX를 쓰는 파일만 `.jsx`를 쓴다.
+
+### JSX 사용 규칙 (팀 합의)
+
+JSX는 `demo/`의 앱 코드에서만 쓴다. JSX는 문법 변환일 뿐이고, 변환 결과는 우리 `h()` 호출이다. React 런타임은 쓰지 않는다.
+
+- 변환은 이미 devDependency인 Vite가 맡는다. JSX 때문에 새 패키지를 추가하지 않는다.
+- JSX 변환 대상은 `h`로 지정하고, `.jsx` 파일은 `import { h } from '../../src/index.js'`처럼 `h`를 직접 import한다.
+- `.jsx`는 `npm run dev`(Vite)로만 실행된다. HTML 파일을 직접 열어서 확인하지 않는다.
+- JSX를 위해 설정 파일(Vite, ESLint, Vitest)을 고칠 때는 JSX 지원에 필요한 항목만 추가하고, 기존 규칙은 바꾸지 않는다.
+- JSX는 React처럼 보이지만 우리 `h()`의 동작을 따른다. 아래를 지킨다.
+  - `<Child />`는 `h`가 그 자리에서 실행하는 순수 함수다. 자식 컴포넌트 안에서 훅을 호출하지 않는다 (절대 규칙 4).
+  - Fragment(`<>...</>`)는 지원하지 않는다. 여러 요소는 하나의 요소로 감싼다. 지원하려면 VNode 형태를 바꿔야 하므로 사람에게 먼저 묻는다.
+  - `ref` prop은 쓰지 않는다. 우리 `useRef`는 DOM 노드와 연결되지 않는다.
+  - `key`는 `attrs`가 아니라 VNode의 `key` 필드에 들어가야 한다 (`docs/vnode-spec.md`). diff가 key를 쓰기 전까지 리스트는 인덱스 기준으로 비교된다는 점을 알고 쓴다.
+  - 속성과 이벤트 이름은 `h()`가 변환하는 것만 쓸 수 있다: `className` → `class`, `htmlFor` → `for`, `on<Event>` → 소문자 DOM 이벤트(`onDoubleClick` → `dblclick`). 텍스트 입력에는 `onChange` 대신 `onInput`을 쓴다.
+  - 위 변환 중 `h()`에 아직 없는 것을 추가할 때는 `h()` 단위 테스트를 함께 쓴다.
 
 ## 폴더 구조와 모듈 경계
 
