@@ -60,6 +60,21 @@ export default defineConfig([
     },
   },
   {
+    // JSX는 demo/ 앱 코드에서만 쓴다 (AGENTS.md JSX 사용 규칙)
+    files: ['demo/**/*.jsx'],
+    plugins: { js },
+    extends: ['js/recommended'],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    rules: {
+      eqeqeq: ['error', 'always'],
+      // h는 JSX 변환 결과에서만 쓰여 소스에는 사용처가 보이지 않는다
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^h$' }],
+    },
+  },
+  {
     files: ['*.config.js'],
     languageOptions: { globals: globals.node },
   },
