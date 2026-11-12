@@ -1,281 +1,236 @@
 <!doctype html>
 <html lang="ko">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>정글 생존 자판기 · mini-react</title>
-  <style>
-    :root {
-      --green-dark: #3d6b35;
-      --green: #a3e03c;
-      --green-soft: #e3f3cf;
-      --ink: #1b1b1b;
-      --paper: #fdf9f1;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 32px 16px;
-      font-family: system-ui, 'Malgun Gothic', sans-serif;
-      color: var(--ink);
-      background: var(--paper);
-    }
-
-    .vending {
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .eyebrow {
-      margin: 0;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-    }
-
-    h1 {
-      margin: 4px 0;
-      font-size: 40px;
-    }
-
-    .subtitle {
-      margin: 0;
-    }
-
-    button {
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-      border: 2px solid var(--ink);
-      border-radius: 10px;
-      background: white;
-    }
-
-    .status {
-      padding: 8px 16px;
-      color: var(--green-dark);
-      border-color: var(--green-dark);
-      white-space: nowrap;
-    }
-
-    .resting .status {
-      color: #8a5a00;
-      border-color: #8a5a00;
-      background: #fff1cc;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .panel {
-      border: 2px solid var(--ink);
-      border-radius: 16px;
-      background: white;
-      overflow: hidden;
-    }
-
-    .panel h2 {
-      margin: 0;
-      padding: 12px 20px;
-      font-size: 20px;
-      color: white;
-      background: var(--green-dark);
-    }
-
-    .resting .panel h2 {
-      background: #77736a;
-    }
-
-    .panel-body {
-      padding: 20px;
-    }
-
-    .menu {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 16px 10px 10px;
-      border: 2px solid var(--ink);
-      border-radius: 12px;
-    }
-
-    .icon {
-      font-size: 48px;
-      line-height: 1.2;
-    }
-
-    .card strong {
-      font-size: 20px;
-    }
-
-    .badge {
-      padding: 2px 12px;
-      border-radius: 999px;
-      font-weight: 700;
-      color: var(--green-dark);
-      background: var(--green-soft);
-    }
-
-    .add {
-      width: 100%;
-      margin-top: 6px;
-      padding: 10px;
-      border: 0;
-      background: var(--green);
-    }
-
-    .add:disabled {
-      color: #888;
-      background: #ddd;
-      cursor: not-allowed;
-    }
-
-    .score {
-      margin-top: 16px;
-      padding: 16px 20px;
-      border-radius: 12px;
-      background: var(--green-soft);
-    }
-
-    .score h3 {
-      margin: 0;
-    }
-
-    .score-value {
-      margin: 4px 0 8px;
-      font-size: 36px;
-      font-weight: 800;
-    }
-
-    .bar {
-      height: 18px;
-      border: 2px solid var(--ink);
-      border-radius: 999px;
-      background: white;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      background: var(--green);
-      transition: width 0.25s;
-    }
-
-    .score-message {
-      margin: 8px 0 0;
-    }
-
-    .count {
-      margin: 0 0 8px;
-      color: #666;
-    }
-
-    .receipt ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .receipt li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .name {
-      flex: 1;
-      font-weight: 700;
-    }
-
-    .plus {
-      font-weight: 800;
-      color: var(--green-dark);
-    }
-
-    .cancel {
-      padding: 4px 12px;
-      font-size: 14px;
-    }
-
-    .empty {
-      margin: 0;
-      padding: 24px 0;
-      text-align: center;
-      color: #888;
-    }
-
-    .total {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin: 16px 0 0;
-      padding-top: 12px;
-      border-top: 2px solid var(--ink);
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .total strong {
-      font-size: 28px;
-      color: var(--green-dark);
-    }
-
-    .hint {
-      margin: 24px 0 0;
-      text-align: center;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .debug {
-      margin-top: 16px;
-      text-align: center;
-      font-size: 1.17em;
-      font-weight: 700;
-      color: var(--ink);
-    }
-
-    @media (max-width: 720px) {
-      .layout {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>정글 생존 자판기 · mini-react</title>
+    <style>
+      :root {
+        --green-dark: #3d6b35;
+        --green: #a3e03c;
+        --green-soft: #e3f3cf;
+        --ink: #1b1b1b;
+        --paper: #fdf9f1;
       }
-
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 16px;
+        font-family: system-ui, 'Malgun Gothic', sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+      }
+      .vending {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .eyebrow {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
       h1 {
-        font-size: 30px;
+        margin: 4px 0;
+        font-size: 40px;
       }
-    }
-  </style>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="./main.jsx"></script>
-</body>
-
+      .subtitle {
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        border: 2px solid var(--ink);
+        border-radius: 10px;
+        background: white;
+      }
+      .status {
+        padding: 8px 16px;
+        color: var(--green-dark);
+        border-color: var(--green-dark);
+        white-space: nowrap;
+      }
+      .resting .status {
+        color: #8a5a00;
+        border-color: #8a5a00;
+        background: #fff1cc;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .panel {
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        background: white;
+        overflow: hidden;
+      }
+      .panel h2 {
+        margin: 0;
+        padding: 12px 20px;
+        font-size: 20px;
+        color: white;
+        background: var(--green-dark);
+      }
+      .resting .panel h2 {
+        background: #77736a;
+      }
+      .panel-body {
+        padding: 20px;
+      }
+      .menu {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 16px 10px 10px;
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+      }
+      .icon {
+        font-size: 48px;
+        line-height: 1.2;
+      }
+      .card strong {
+        font-size: 20px;
+      }
+      .badge {
+        padding: 2px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: var(--green-dark);
+        background: var(--green-soft);
+      }
+      .add {
+        width: 100%;
+        margin-top: 6px;
+        padding: 10px;
+        border: 0;
+        background: var(--green);
+      }
+      .add:disabled {
+        color: #888;
+        background: #ddd;
+        cursor: not-allowed;
+      }
+      .score {
+        margin-top: 16px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        background: var(--green-soft);
+      }
+      .score h3 {
+        margin: 0;
+      }
+      .score-value {
+        margin: 4px 0 8px;
+        font-size: 36px;
+        font-weight: 800;
+      }
+      .bar {
+        height: 18px;
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+        background: white;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        background: var(--green);
+        transition: width 0.25s;
+      }
+      .score-message {
+        margin: 8px 0 0;
+      }
+      .count {
+        margin: 0 0 8px;
+        color: #666;
+      }
+      .receipt ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .receipt li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #ddd;
+      }
+      .name {
+        flex: 1;
+        font-weight: 700;
+      }
+      .plus {
+        font-weight: 800;
+        color: var(--green-dark);
+      }
+      .cancel {
+        padding: 4px 12px;
+        font-size: 14px;
+      }
+      .empty {
+        margin: 0;
+        padding: 24px 0;
+        text-align: center;
+        color: #888;
+      }
+      .total {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 16px 0 0;
+        padding-top: 12px;
+        border-top: 2px solid var(--ink);
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .total strong {
+        font-size: 28px;
+        color: var(--green-dark);
+      }
+      .hint {
+        margin: 24px 0 0;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+      }
+      .debug {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 13px;
+        color: #888;
+      }
+      @media (max-width: 720px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.jsx"></script>
+  </body>
 </html>
